@@ -11,77 +11,87 @@ app = FastAPI(
 )
 
 # ==================== МОДЕЛИ (DTO) ====================
+from pydantic import BaseModel, Field, field_validator, EmailStr
+from typing import List, Optional
+from datetime import datetime
 
 # User Service
 class UserCreate(BaseModel):
     email: EmailStr
-    password: str
-    name: str
-    phone: str
+    password: str = Field(min_length=8, max_length=128, description="Пароль от 8 до 128 символов")
+    name: str = Field(min_length=2, max_length=50, description="Имя пользователя")
+    phone: str = Field(min_length=10, max_length=15, description="Номер телефона")
 
 class UserLogin(BaseModel):
     email: EmailStr
-    password: str
+    password: str = Field(min_length=1, description="Пароль для входа")
 
 class AddressCreate(BaseModel):
-    city: str
-    street: str
-    house: str
-    apartment: Optional[str] = None
-    entrance: Optional[str] = None
-    comment: Optional[str] = None
+    city: str = Field(min_length=2, max_length=50)
+    street: str = Field(min_length=2, max_length=100)
+    house: str = Field(min_length=1, max_length=10)
+    apartment: Optional[str] = Field(default=None, max_length=10)
+    entrance: Optional[str] = Field(default=None, max_length=5)
+    comment: Optional[str] = Field(default=None, max_length=255)
     is_default: bool = False
 
 class UserResponse(BaseModel):
-    id: int
-    email: str
+    id: int = Field(ge=1)
+    email: EmailStr
     name: str
     phone: str
     created_at: datetime
 
 class AddressResponse(BaseModel):
-    id: int
+    id: int = Field(ge=1)
     city: str
     street: str
     house: str
-    apartment: Optional[str]
+    apartment: Optional[str] = None
     is_default: bool
 
 # Catalog Service
 class CategoryResponse(BaseModel):
-    id: int
+    id: int = Field(ge=1)
     name: str
-    description: Optional[str]
+    description: Optional[str] = None
 
 class DishCreate(BaseModel):
-    name: str
-    description: Optional[str]
-    price: float
-    category_id: int
+    name: str = Field(min_length=2, max_length=100, description="Название блюда")
+    description: Optional[str] = Field(default=None, max_length=500)
+    price: float = Field(gt=0, description="Цена должна быть строго положительной")
+    category_id: int = Field(ge=1, description="ID категории (должен существовать)")
     is_available: bool = True
 
 class DishResponse(BaseModel):
-    id: int
+    id: int = Field(ge=1)
     name: str
-    description: Optional[str]
+    description: Optional[str] = None
     price: float
     category_id: int
     is_available: bool
 
 # Order Service
 class OrderItemCreate(BaseModel):
-    dish_id: int
-    quantity: int
+    dish_id: int = Field(ge=1, description="ID блюда")
+    quantity: int = Field(ge=1, le=100, description="Количество от 1 до 100")
 
 class OrderCreate(BaseModel):
     items: List[OrderItemCreate]
-    address_id: int
+    address_id: int = Field(ge=1, description="ID адреса доставки")
+
+    @field_validator('items')
+    @classmethod
+    def items_not_empty(cls, v: List[OrderItemCreate]) -> List[OrderItemCreate]:
+        if len(v) == 0:
+            raise ValueError('Заказ должен содержать хотя бы одно блюдо')
+        return v
 
 class OrderResponse(BaseModel):
-    orderId: int
+    orderId: int = Field(ge=1)
     status: str
     totalPrice: float
-
+    
 # ==================== ЭНДПОИНТЫ ====================
 
 # User Service
