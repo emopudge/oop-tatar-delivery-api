@@ -35,5 +35,7 @@ uvicorn main:app --reload
 
 ## Ресурсы
 [FastAPI Docs](https://fastapi.tiangolo.com/?spm=a2ty_o01.29997173.0.0.444355fbOXIdIv)
+
 [Swagger/OpenAPI Spec](https://swagger.io/specification/?spm=a2ty_o01.29997173.0.0.444355fbOXIdIv)
+
 [Pydantic Models](https://docs.pydantic.dev/?spm=a2ty_o01.29997173.0.0.444355fbOXIdIv)
