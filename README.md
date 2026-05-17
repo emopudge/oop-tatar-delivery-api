@@ -1,41 +1,63 @@
-# 🍲 Tatar Food Delivery API
+# Tatar Food Delivery API
 
-REST API для сервиса доставки национальной татарской кухни.  
-Проект в рамках курса ООП, ИТМО, 2026.
+Репозиторий для проекта по ООП: сервис заказа татарской еды с микросервисной архитектурой.
 
-## Быстрый старт
+Рабочая реализация `User Service` на C# лежит в `TatarDelivery.UserService`.
 
-### 1. Клонируй репозиторий
+## Что реализовано
+
+`User Service` поддерживает:
+
+- `POST /users/register`
+- `POST /users/login`
+- `GET /users/me`
+- `PUT /users/me`
+- `GET /users/me/addresses`
+- `POST /users/me/addresses`
+
+Внутри есть:
+
+- регистрация и логин;
+- просмотр и редактирование профиля;
+- добавление и просмотр адресов доставки;
+- валидация входных данных;
+- обработка ошибок;
+- хранение данных в `SQLite`;
+- Swagger UI для проверки ручек.
+
+## Стек
+
+- `ASP.NET Core`
+- `Entity Framework Core`
+- `SQLite`
+- `Swagger / Swashbuckle`
+
+## Запуск
+
 ```bash
-git clone https://github.com/your-username/oop-tatar-delivery-api.git
-cd oop-tatar-delivery-api
+cd TatarDelivery.UserService
+dotnet build
+dotnet run
 ```
-### 2. Создай виртуальное окружение
-```bash
-# Windows (PowerShell)
-python -m venv venv
-.\venv\Scripts\activate
 
-# Mac/Linux
-python3 -m venv venv
-source venv/bin/activate
-```
-### 3. Установи зависимости
-```bash
-pip install -r requirements.txt
-```
-### 4. Запусти сервер
-```bash
-uvicorn main:app --reload
-```
-### 5. Открой документацию
-- Swagger UI: http://127.0.0.1:8000/docs (интерактивная документация)
-- ReDoc: http://127.0.0.1:8000/redoc (альтернативная читаемая документация, если Swagger не загрузится)
-- OpenAPI JSON: http://127.0.0.1:8000/openapi.json (Показывает, что спецификация машиночитаемая (для генерации кода))
+Swagger будет доступен по адресу:
 
-## Ресурсы
-[FastAPI Docs](https://fastapi.tiangolo.com/?spm=a2ty_o01.29997173.0.0.444355fbOXIdIv)
+- `http://localhost:5100/swagger`
 
-[Swagger/OpenAPI Spec](https://swagger.io/specification/?spm=a2ty_o01.29997173.0.0.444355fbOXIdIv)
+## Авторизация в Swagger
 
-[Pydantic Models](https://docs.pydantic.dev/?spm=a2ty_o01.29997173.0.0.444355fbOXIdIv)
+1. Вызвать `POST /users/register`.
+2. Вызвать `POST /users/login`.
+3. Скопировать `accessToken` из ответа.
+4. Нажать `Authorize` и вставить токен.
+
+## База данных
+
+Локальный файл базы создаётся автоматически:
+
+- `TatarDelivery.UserService/tatar-delivery-users.db`
+
+Таблицы:
+
+- `Users`
+- `Addresses`

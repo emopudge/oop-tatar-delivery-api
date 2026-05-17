@@ -1,0 +1,63 @@
+@TatarDelivery.UserService_HostAddress = http://localhost:5100
+@AuthToken = paste-token-here
+
+POST {{TatarDelivery.UserService_HostAddress}}/users/register
+Content-Type: application/json
+
+{
+  "email": "test@example.com",
+  "password": "Password123",
+  "fullName": "Марсель Хабибуллин",
+  "phone": "+79991234567"
+}
+
+###
+
+POST {{TatarDelivery.UserService_HostAddress}}/users/login
+Content-Type: application/json
+
+{
+  "email": "test@example.com",
+  "password": "Password123"
+}
+
+###
+
+GET {{TatarDelivery.UserService_HostAddress}}/users/me
+Authorization: Bearer {{AuthToken}}
+Accept: application/json
+
+###
+
+PUT {{TatarDelivery.UserService_HostAddress}}/users/me
+Authorization: Bearer {{AuthToken}}
+Content-Type: application/json
+
+{
+  "fullName": "Марсель Хабибуллин",
+  "phone": "+79997654321"
+}
+
+###
+
+POST {{TatarDelivery.UserService_HostAddress}}/users/me/addresses
+Authorization: Bearer {{AuthToken}}
+Content-Type: application/json
+
+{
+  "city": "Казань",
+  "street": "Баумана",
+  "house": "10",
+  "apartment": "12",
+  "entrance": "2",
+  "comment": "Домофон не работает",
+  "isDefault": true
+}
+
+###
+
+GET {{TatarDelivery.UserService_HostAddress}}/users/me/addresses
+Authorization: Bearer {{AuthToken}}
+Accept: application/json
+
+###

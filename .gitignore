@@ -23,3 +23,12 @@ Thumbs.db
 
 # Environment variables
 .env
+
+# .NET
+**/bin/
+**/obj/
+*.db
+*.db-shm
+*.db-wal
+*.user
+*.suo
