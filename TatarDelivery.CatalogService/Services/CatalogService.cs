@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using TatarDelivery.CatalogService.Domain;
 using TatarDelivery.CatalogService.Data;
 using TatarDelivery.CatalogService.Services;
+using TatarDelivery.CatalogService.Contracts.Requests;
 
 namespace TatarDelivery.CatalogService.Services;
 
@@ -63,5 +64,31 @@ public class CatalogService : ICatalogService
                 EF.Functions.ILike(d.Name, $"%{query}%") || 
                 EF.Functions.ILike(d.Description, $"%{query}%"))
             .ToListAsync();
+    }
+    public async Task<Dish> CreateDishAsync(CreateDishRequest request)
+    {
+        var categoryExists = await _context.Categories
+            .AnyAsync(c => c.Id == request.CategoryId);
+
+        if (!categoryExists)
+        {
+            throw new InvalidOperationException($"Категория с ID {request.CategoryId} не найдена.");
+        }
+
+        var dish = new Dish
+        {
+            Name = request.Name,
+            Description = request.Description ?? "",
+            Price = request.Price,
+            IsAvailable = request.IsAvailable,
+            CategoryId = request.CategoryId,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        };
+
+        _context.Dishes.Add(dish);
+        await _context.SaveChangesAsync();
+
+        return dish;
     }
 }

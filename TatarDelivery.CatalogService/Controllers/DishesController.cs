@@ -58,4 +58,17 @@ public class DishesController : ControllerBase
         var response = CatalogMappings.ToDishResponse.Compile()(dish);
         return Ok(response);
     }
+
+    [HttpPost]
+    [ProducesResponseType(typeof(DishResponse), StatusCodes.Status201Created)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status403Forbidden)]
+    public async Task<IActionResult> CreateDish([FromBody] CreateDishRequest request)
+    {
+        var dish = await _catalogService.CreateDishAsync(request);
+
+        var response = CatalogMappings.ToDishResponse.Compile()(dish);
+        return CreatedAtAction(nameof(GetDishById), new { id = dish.Id }, response);
+    }
 }
