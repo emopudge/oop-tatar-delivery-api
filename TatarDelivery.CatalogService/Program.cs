@@ -15,7 +15,7 @@ builder.Services.AddSwaggerGen(c =>
 // подключение к бд
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlServer(connectionString));
+    options.UseNpgsql(connectionString));
 
 // интерфейсы и реализации
 builder.Services.AddScoped<ICatalogDbContext, AppDbContext>();
