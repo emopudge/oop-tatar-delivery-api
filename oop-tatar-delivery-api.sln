@@ -6,6 +6,7 @@ MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TatarDelivery.UserService", "TatarDelivery.UserService\TatarDelivery.UserService.csproj", "{ABB3EBA4-CC02-0E5A-FC25-E9DAB3954DF2}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TatarDelivery.OrderService", "TatarDelivery.OrderService\TatarDelivery.OrderService.csproj", "{81266F18-D06B-4D60-9DC8-999DADDD57A0}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TatarDelivery.CatalogService", "TatarDelivery.CatalogService\TatarDelivery.CatalogService.csproj", "{40DA37E0-08B8-4B62-9B4A-4D13673F64EB}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -41,6 +42,18 @@ Global
 		{81266F18-D06B-4D60-9DC8-999DADDD57A0}.Release|x64.Build.0 = Release|Any CPU
 		{81266F18-D06B-4D60-9DC8-999DADDD57A0}.Release|x86.ActiveCfg = Release|Any CPU
 		{81266F18-D06B-4D60-9DC8-999DADDD57A0}.Release|x86.Build.0 = Release|Any CPU
+		{40DA37E0-08B8-4B62-9B4A-4D13673F64EB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{40DA37E0-08B8-4B62-9B4A-4D13673F64EB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{40DA37E0-08B8-4B62-9B4A-4D13673F64EB}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{40DA37E0-08B8-4B62-9B4A-4D13673F64EB}.Debug|x64.Build.0 = Debug|Any CPU
+		{40DA37E0-08B8-4B62-9B4A-4D13673F64EB}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{40DA37E0-08B8-4B62-9B4A-4D13673F64EB}.Debug|x86.Build.0 = Debug|Any CPU
+		{40DA37E0-08B8-4B62-9B4A-4D13673F64EB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{40DA37E0-08B8-4B62-9B4A-4D13673F64EB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{40DA37E0-08B8-4B62-9B4A-4D13673F64EB}.Release|x64.ActiveCfg = Release|Any CPU
+		{40DA37E0-08B8-4B62-9B4A-4D13673F64EB}.Release|x64.Build.0 = Release|Any CPU
+		{40DA37E0-08B8-4B62-9B4A-4D13673F64EB}.Release|x86.ActiveCfg = Release|Any CPU
+		{40DA37E0-08B8-4B62-9B4A-4D13673F64EB}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

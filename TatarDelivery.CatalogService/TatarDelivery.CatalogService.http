@@ -1,0 +1,19 @@
+### Get all categories
+GET http://localhost:5000/api/categories
+Accept: application/json
+
+### Get all dishes
+GET http://localhost:5000/api/dishes
+Accept: application/json
+
+### Get dish by ID
+GET http://localhost:5000/api/dishes/1
+Accept: application/json
+
+### Get dishes by category (ID=2)
+GET http://localhost:5000/api/dishes?categoryId=2
+Accept: application/json
+
+### Search dishes (query="чак")
+GET http://localhost:5000/api/dishes?search=чак
+Accept: application/json

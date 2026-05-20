@@ -15,6 +15,22 @@
 - `GET /users/me/addresses`
 - `POST /users/me/addresses`
 
+`Catalog Service` поддерживает:
+
+- `GET /categories`
+- `GET /dishes`
+- `GET /dishes/{id}`
+- `POST /dishes`
+
+`Order Service` поддерживает:
+
+- `POST /orders`
+- `GET /orders/{order_id}`
+- `GET /orders/my`
+- `POST /orders/{order_id}/cancel`
+- `POST /orders/{order_id}/pay`
+- `POST /orders/{order_id}/deliver`
+
 Внутри есть:
 
 - регистрация и логин;
