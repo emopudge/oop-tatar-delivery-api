@@ -1,0 +1,372 @@
+{
+  "info": {
+    "_postman_id": "85ecf1ac-8aa4-4f38-8cce-99650fd5d2f3",
+    "name": "Tatar Delivery API",
+    "description": "Manual QA collection for Tatar Delivery API. User Service requests are ready to run. Catalog and Order requests are draft placeholders until services are added.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "User Service",
+      "item": [
+        {
+          "name": "Register user",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"demo.qa@example.com\",\n  \"password\": \"Password123!\",\n  \"fullName\": \"Demo User\",\n  \"phone\": \"+79990000000\"\n}"
+            },
+            "url": {
+              "raw": "{{userServiceUrl}}/users/register",
+              "host": [
+                "{{userServiceUrl}}"
+              ],
+              "path": [
+                "users",
+                "register"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "  const json = pm.response.json();",
+                  "  pm.environment.set('token', json.accessToken);",
+                  "  pm.environment.set('userId', json.user.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"demo.qa@example.com\",\n  \"password\": \"Password123!\"\n}"
+            },
+            "url": {
+              "raw": "{{userServiceUrl}}/users/login",
+              "host": [
+                "{{userServiceUrl}}"
+              ],
+              "path": [
+                "users",
+                "login"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get current user",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{userServiceUrl}}/users/me",
+              "host": [
+                "{{userServiceUrl}}"
+              ],
+              "path": [
+                "users",
+                "me"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update current user",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"Updated Demo User\",\n  \"phone\": \"+79991111111\"\n}"
+            },
+            "url": {
+              "raw": "{{userServiceUrl}}/users/me",
+              "host": [
+                "{{userServiceUrl}}"
+              ],
+              "path": [
+                "users",
+                "me"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Add address",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "  const json = pm.response.json();",
+                  "  pm.environment.set('addressId', json.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"city\": \"Казань\",\n  \"street\": \"Баумана\",\n  \"house\": \"10\",\n  \"apartment\": \"15\",\n  \"entrance\": \"1\",\n  \"comment\": \"Домофон 15\",\n  \"isDefault\": true\n}"
+            },
+            "url": {
+              "raw": "{{userServiceUrl}}/users/me/addresses",
+              "host": [
+                "{{userServiceUrl}}"
+              ],
+              "path": [
+                "users",
+                "me",
+                "addresses"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get addresses",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{userServiceUrl}}/users/me/addresses",
+              "host": [
+                "{{userServiceUrl}}"
+              ],
+              "path": [
+                "users",
+                "me",
+                "addresses"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Catalog Service Draft",
+      "item": [
+        {
+          "name": "Get categories",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{catalogServiceUrl}}/categories"
+          }
+        },
+        {
+          "name": "Get dishes",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{catalogServiceUrl}}/dishes"
+          }
+        },
+        {
+          "name": "Search dishes",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{catalogServiceUrl}}/dishes?search=чак"
+          }
+        },
+        {
+          "name": "Get dish by id",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{catalogServiceUrl}}/dishes/{{dishId}}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Order Service Draft",
+      "item": [
+        {
+          "name": "Create order",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": {{userId}},\n  \"items\": [\n    {\n      \"dishId\": {{dishId}},\n      \"quantity\": 2\n    }\n  ],\n  \"addressId\": {{addressId}}\n}"
+            },
+            "url": "{{orderServiceUrl}}/orders"
+          }
+        },
+        {
+          "name": "Get order",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": "{{orderServiceUrl}}/orders/{{orderId}}"
+          }
+        },
+        {
+          "name": "Get my orders",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": "{{orderServiceUrl}}/orders/my"
+          }
+        },
+        {
+          "name": "Cancel order",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": "{{orderServiceUrl}}/orders/{{orderId}}/cancel"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Negative Tests",
+      "item": [
+        {
+          "name": "Register invalid data",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"\",\n  \"password\": \"short\",\n  \"fullName\": \"A\",\n  \"phone\": \"bad\"\n}"
+            },
+            "url": "{{userServiceUrl}}/users/register"
+          }
+        },
+        {
+          "name": "Login wrong password",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"demo.qa@example.com\",\n  \"password\": \"WrongPassword123!\"\n}"
+            },
+            "url": "{{userServiceUrl}}/users/login"
+          }
+        },
+        {
+          "name": "Get current user without token",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{userServiceUrl}}/users/me"
+          }
+        },
+        {
+          "name": "Add invalid address",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"city\": \"\",\n  \"street\": \"A\",\n  \"house\": \"\",\n  \"isDefault\": true\n}"
+            },
+            "url": "{{userServiceUrl}}/users/me/addresses"
+          }
+        }
+      ]
+    }
+  ]
+}
