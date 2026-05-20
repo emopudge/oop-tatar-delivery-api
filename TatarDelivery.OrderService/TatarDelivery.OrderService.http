@@ -1,0 +1,6 @@
+@TatarDelivery.OrderService_HostAddress = http://localhost:5007
+
+GET {{TatarDelivery.OrderService_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
