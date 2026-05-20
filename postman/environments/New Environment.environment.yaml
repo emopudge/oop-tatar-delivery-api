@@ -1,0 +1,19 @@
+name: New Environment
+values:
+  - key: userServiceUrl
+    value: 'http://localhost:5100'
+  - key: catalogServiceUrl
+    value: 'http://localhost:5078'
+  - key: orderServiceUrl
+    value: 'http://localhost:5007'
+  - key: token
+    value: ''
+  - key: userId
+    value: ''
+  - key: addressId
+    value: ''
+  - key: dishId
+    value: '1'
+  - key: orderId
+    value: ''
+color: 180

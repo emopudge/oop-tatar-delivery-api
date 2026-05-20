@@ -1,0 +1,7 @@
+$kind: http-request
+method: GET
+url: '{{userServiceUrl}}/users/me/addresses'
+order: 6000
+headers:
+  - key: Authorization
+    value: 'Bearer {{token}}'

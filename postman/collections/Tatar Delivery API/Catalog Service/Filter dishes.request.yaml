@@ -1,0 +1,7 @@
+$kind: http-request
+method: GET
+url: '{{catalogServiceUrl}}/dishes'
+order: 3000
+queryParams:
+  - key: categoryId
+    value: '2'

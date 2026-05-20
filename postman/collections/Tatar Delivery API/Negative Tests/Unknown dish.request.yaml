@@ -1,0 +1,4 @@
+$kind: http-request
+method: GET
+url: '{{catalogServiceUrl}}/dishes/9999'
+order: 3000

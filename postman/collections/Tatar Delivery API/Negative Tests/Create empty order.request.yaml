@@ -1,0 +1,15 @@
+$kind: http-request
+method: POST
+url: '{{orderServiceUrl}}/orders'
+order: 4000
+headers:
+  - key: Content-Type
+    value: application/json
+body:
+  type: json
+  content: |-
+    {
+      "userId": {{userId}},
+      "addressId": {{addressId}},
+      "items": []
+    }

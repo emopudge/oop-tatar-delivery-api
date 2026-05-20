@@ -1,0 +1,4 @@
+$kind: http-request
+method: POST
+url: '{{orderServiceUrl}}/orders/{{orderId}}/deliver'
+order: 5000

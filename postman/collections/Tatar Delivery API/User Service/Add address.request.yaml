@@ -1,0 +1,29 @@
+$kind: http-request
+method: POST
+url: '{{userServiceUrl}}/users/me/addresses'
+order: 5000
+headers:
+  - key: Content-Type
+    value: application/json
+  - key: Authorization
+    value: 'Bearer {{token}}'
+body:
+  type: json
+  content: |-
+    {
+      "city": "Казань",
+      "street": "Баумана",
+      "house": "10",
+      "apartment": "15",
+      "entrance": "1",
+      "comment": "Домофон 15",
+      "isDefault": true
+    }
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      if (pm.response.code === 201) {
+        const json = pm.response.json();
+        pm.environment.set('addressId', json.id);
+      }

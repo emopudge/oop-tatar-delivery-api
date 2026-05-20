@@ -1,0 +1,7 @@
+$kind: http-request
+method: GET
+url: '{{orderServiceUrl}}/orders/my'
+order: 3000
+queryParams:
+  - key: userId
+    value: '{{userId}}'

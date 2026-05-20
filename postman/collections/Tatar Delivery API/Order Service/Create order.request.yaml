@@ -1,0 +1,28 @@
+$kind: http-request
+method: POST
+url: '{{orderServiceUrl}}/orders'
+order: 1000
+headers:
+  - key: Content-Type
+    value: application/json
+body:
+  type: json
+  content: |-
+    {
+      "userId": {{userId}},
+      "addressId": {{addressId}},
+      "items": [
+        {
+          "dishId": {{dishId}},
+          "quantity": 2
+        }
+      ]
+    }
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      if (pm.response.code === 201) {
+        const json = pm.response.json();
+        pm.environment.set('orderId', json.id);
+      }
