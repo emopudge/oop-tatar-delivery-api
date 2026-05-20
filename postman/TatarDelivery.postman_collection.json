@@ -1,0 +1,235 @@
+{
+  "info": {
+    "_postman_id": "d47d6d5b-e758-40b2-a982-40b60bd04d31",
+    "name": "Tatar Delivery API",
+    "description": "Manual QA and demo collection for User, Catalog and Order services.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "User Service",
+      "item": [
+        {
+          "name": "Register user",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"demo.qa@example.com\",\n  \"password\": \"Password123!\",\n  \"fullName\": \"Demo User\",\n  \"phone\": \"+79990000000\"\n}"
+            },
+            "url": "{{userServiceUrl}}/users/register"
+          }
+        },
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "  const json = pm.response.json();",
+                  "  pm.environment.set('token', json.accessToken);",
+                  "  pm.environment.set('userId', json.user.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"demo.qa@example.com\",\n  \"password\": \"Password123!\"\n}"
+            },
+            "url": "{{userServiceUrl}}/users/login"
+          }
+        },
+        {
+          "name": "Get current user",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": "{{userServiceUrl}}/users/me"
+          }
+        },
+        {
+          "name": "Update current user",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"Updated Demo User\",\n  \"phone\": \"+79991111111\"\n}"
+            },
+            "url": "{{userServiceUrl}}/users/me"
+          }
+        },
+        {
+          "name": "Add address",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "  const json = pm.response.json();",
+                  "  pm.environment.set('addressId', json.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"city\": \"Казань\",\n  \"street\": \"Баумана\",\n  \"house\": \"10\",\n  \"apartment\": \"15\",\n  \"entrance\": \"1\",\n  \"comment\": \"Домофон 15\",\n  \"isDefault\": true\n}"
+            },
+            "url": "{{userServiceUrl}}/users/me/addresses"
+          }
+        },
+        {
+          "name": "Get addresses",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": "{{userServiceUrl}}/users/me/addresses"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Catalog Service",
+      "item": [
+        {
+          "name": "Get categories",
+          "request": { "method": "GET", "header": [], "url": "{{catalogServiceUrl}}/categories" }
+        },
+        {
+          "name": "Get dishes",
+          "request": { "method": "GET", "header": [], "url": "{{catalogServiceUrl}}/dishes" }
+        },
+        {
+          "name": "Filter dishes",
+          "request": { "method": "GET", "header": [], "url": "{{catalogServiceUrl}}/dishes?categoryId=2" }
+        },
+        {
+          "name": "Search dishes",
+          "request": { "method": "GET", "header": [], "url": "{{catalogServiceUrl}}/dishes?search=%D1%87%D0%B0%D0%BA" }
+        },
+        {
+          "name": "Get dish by id",
+          "request": { "method": "GET", "header": [], "url": "{{catalogServiceUrl}}/dishes/{{dishId}}" }
+        }
+      ]
+    },
+    {
+      "name": "Order Service",
+      "item": [
+        {
+          "name": "Create order",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "  const json = pm.response.json();",
+                  "  pm.environment.set('orderId', json.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": {{userId}},\n  \"addressId\": {{addressId}},\n  \"items\": [\n    {\n      \"dishId\": {{dishId}},\n      \"quantity\": 2\n    }\n  ]\n}"
+            },
+            "url": "{{orderServiceUrl}}/orders"
+          }
+        },
+        {
+          "name": "Get order",
+          "request": { "method": "GET", "header": [], "url": "{{orderServiceUrl}}/orders/{{orderId}}" }
+        },
+        {
+          "name": "Get my orders",
+          "request": { "method": "GET", "header": [], "url": "{{orderServiceUrl}}/orders/my?userId={{userId}}" }
+        },
+        {
+          "name": "Pay order",
+          "request": { "method": "POST", "header": [], "url": "{{orderServiceUrl}}/orders/{{orderId}}/pay" }
+        },
+        {
+          "name": "Deliver order",
+          "request": { "method": "POST", "header": [], "url": "{{orderServiceUrl}}/orders/{{orderId}}/deliver" }
+        },
+        {
+          "name": "Cancel order",
+          "request": { "method": "POST", "header": [], "url": "{{orderServiceUrl}}/orders/{{orderId}}/cancel" }
+        }
+      ]
+    },
+    {
+      "name": "Negative Tests",
+      "item": [
+        {
+          "name": "Register invalid data",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"\",\n  \"password\": \"short\",\n  \"fullName\": \"A\",\n  \"phone\": \"bad\"\n}"
+            },
+            "url": "{{userServiceUrl}}/users/register"
+          }
+        },
+        {
+          "name": "Login wrong password",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"demo.qa@example.com\",\n  \"password\": \"WrongPassword123!\"\n}"
+            },
+            "url": "{{userServiceUrl}}/users/login"
+          }
+        },
+        {
+          "name": "Unknown dish",
+          "request": { "method": "GET", "header": [], "url": "{{catalogServiceUrl}}/dishes/9999" }
+        },
+        {
+          "name": "Create empty order",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": {{userId}},\n  \"addressId\": {{addressId}},\n  \"items\": []\n}"
+            },
+            "url": "{{orderServiceUrl}}/orders"
+          }
+        }
+      ]
+    }
+  ]
+}

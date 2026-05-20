@@ -8,7 +8,7 @@ using TatarDelivery.CatalogService.Services;
 namespace TatarDelivery.CatalogService.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
+[Route("categories")]
 public class CategoriesController : ControllerBase
 {
     private readonly ICatalogService _catalogService;

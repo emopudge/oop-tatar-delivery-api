@@ -1,0 +1,20 @@
+services:
+  catalog-db:
+    image: postgres:16-alpine
+    container_name: tatar-delivery-catalog-db
+    environment:
+      POSTGRES_DB: tatar_delivery_catalog
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: yourpassword
+    ports:
+      - "5433:5432"
+    volumes:
+      - catalog-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d tatar_delivery_catalog"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  catalog-db-data:

@@ -11,7 +11,7 @@ using TatarDelivery.CatalogService.Services;
 namespace TatarDelivery.CatalogService.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
+[Route("dishes")]
 public class DishesController : ControllerBase
 {
     private readonly ICatalogService _catalogService;

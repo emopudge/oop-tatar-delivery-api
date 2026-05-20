@@ -120,7 +120,7 @@ public sealed class OrdersController : ControllerBase
             return NotFound(new ErrorResponse("Order not found."));
         }
 
-        if (order.Status is "Cancelled" or "Completed")
+        if (order.Status != "PendingPayment")
         {
             return BadRequest(new ErrorResponse("Order cannot be cancelled in current status."));
         }
@@ -171,6 +171,43 @@ public sealed class OrdersController : ControllerBase
             Status = order.Status,
             ChangedAtUtc = now,
             ChangedBy = "user"
+        });
+
+        await _dbContext.SaveChangesAsync();
+
+        return Ok(order.ToResponse());
+    }
+
+    [HttpPost("{id:int}/deliver")]
+    [ProducesResponseType(typeof(OrderResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<OrderResponse>> DeliverOrder(int id)
+    {
+        var order = await _dbContext.Orders
+            .Include(order => order.Items)
+            .Include(order => order.StatusHistory)
+            .FirstOrDefaultAsync(order => order.Id == id);
+
+        if (order is null)
+        {
+            return NotFound(new ErrorResponse("Order not found."));
+        }
+
+        if (order.Status != "Paid")
+        {
+            return BadRequest(new ErrorResponse("Only paid orders can be delivered."));
+        }
+
+        var now = DateTime.UtcNow;
+
+        order.Status = "Delivered";
+        order.UpdatedAtUtc = now;
+        order.StatusHistory.Add(new OrderStatusHistory
+        {
+            Status = order.Status,
+            ChangedAtUtc = now,
+            ChangedBy = "delivery"
         });
 
         await _dbContext.SaveChangesAsync();

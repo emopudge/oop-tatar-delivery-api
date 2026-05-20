@@ -2,7 +2,11 @@
 
 Репозиторий для проекта по ООП: сервис заказа татарской еды с микросервисной архитектурой.
 
-Рабочая реализация `User Service` на C# лежит в `TatarDelivery.UserService`.
+Проект состоит из трех ASP.NET Core сервисов:
+
+- `TatarDelivery.UserService`
+- `TatarDelivery.CatalogService`
+- `TatarDelivery.OrderService`
 
 ## Что реализовано
 
@@ -50,15 +54,39 @@
 
 ## Запуск
 
+### 1. Поднять PostgreSQL для Catalog Service
+
 ```bash
-cd TatarDelivery.UserService
-dotnet build
-dotnet run
+docker compose up -d catalog-db
 ```
 
-Swagger будет доступен по адресу:
+### 2. Собрать solution
 
-- `http://localhost:5100/swagger`
+```bash
+dotnet build oop-tatar-delivery-api.sln
+```
+
+### 3. Запустить сервисы
+
+В трех отдельных терминалах:
+
+```bash
+dotnet run --project TatarDelivery.UserService/TatarDelivery.UserService.csproj
+```
+
+```bash
+dotnet run --project TatarDelivery.CatalogService/TatarDelivery.CatalogService.csproj
+```
+
+```bash
+dotnet run --project TatarDelivery.OrderService/TatarDelivery.OrderService.csproj
+```
+
+Swagger будет доступен:
+
+- User Service: `http://localhost:5100/swagger`
+- Catalog Service: `http://localhost:5078/swagger`
+- Order Service: `http://localhost:5007/swagger`
 
 ## Авторизация в Swagger
 
@@ -77,3 +105,7 @@ Swagger будет доступен по адресу:
 
 - `Users`
 - `Addresses`
+
+`Catalog Service` использует PostgreSQL из `docker-compose.yml`.
+
+`Order Service` использует локальный SQLite-файл и mock-цены блюд.
