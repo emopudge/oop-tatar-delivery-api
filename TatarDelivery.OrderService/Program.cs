@@ -1,6 +1,8 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
+using TatarDelivery.OrderService.Clients;
 using TatarDelivery.OrderService.Data;
+using TatarDelivery.OrderService.Services;
 
 namespace TatarDelivery.OrderService;
 
@@ -14,6 +16,8 @@ public class Program
         builder.Services.AddDbContext<AppDbContext>(options =>
             options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
         builder.Services.AddEndpointsApiExplorer();
+        builder.Services.AddScoped<IOrderService, OrderService>();
+        builder.Services.AddSingleton<IPaymentClient, MockTinkoffPaymentClient>();
 
         builder.Services.AddSwaggerGen(options =>
         {

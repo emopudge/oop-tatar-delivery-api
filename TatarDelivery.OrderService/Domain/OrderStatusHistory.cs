@@ -6,7 +6,7 @@ public sealed class OrderStatusHistory
 
     public int OrderId { get; set; }
 
-    public string Status { get; set; } = string.Empty;
+    public OrderStatus Status { get; set; }
 
     public DateTime ChangedAtUtc { get; set; }
 

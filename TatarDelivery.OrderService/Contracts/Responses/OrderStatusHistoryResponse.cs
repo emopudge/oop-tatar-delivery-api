@@ -2,7 +2,7 @@ namespace TatarDelivery.OrderService.Contracts.Responses;
 
 public sealed record OrderStatusHistoryResponse(
     int Id,
-    string Status,
+    OrderStatus Status,
     DateTime ChangedAtUtc,
     string ChangedBy
 );

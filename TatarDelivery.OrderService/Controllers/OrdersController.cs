@@ -1,10 +1,15 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Mvc;
+using Polly;
+using Polly.Extensions.Http;
+using TatarDelivery.OrderService.Clients;
 using TatarDelivery.OrderService.Contracts.Requests;
 using TatarDelivery.OrderService.Contracts.Responses;
 using TatarDelivery.OrderService.Contracts.Responses.Mappings;
 using TatarDelivery.OrderService.Data;
 using TatarDelivery.OrderService.Domain;
+using TatarDelivery.OrderService.Services;
+using System.Threading.Tasks;
 
 namespace TatarDelivery.OrderService.Controllers;
 
@@ -14,10 +19,12 @@ namespace TatarDelivery.OrderService.Controllers;
 public sealed class OrdersController : ControllerBase
 {
     private readonly AppDbContext _dbContext;
+    private readonly IOrderService _orderService;
 
     public OrdersController(AppDbContext dbContext)
     {
         _dbContext = dbContext;
+        _orderService = orderService ?? throw new System.ArgumentNullException(nameof(orderService));
     }
 
     [HttpPost]
@@ -36,7 +43,6 @@ public sealed class OrdersController : ControllerBase
         {
             UserId = request.UserId,
             AddressId = request.AddressId,
-            Status = "PendingPayment",
             CreatedAtUtc = now,
             UpdatedAtUtc = now
         };
@@ -66,6 +72,8 @@ public sealed class OrdersController : ControllerBase
 
         _dbContext.Orders.Add(order);
         await _dbContext.SaveChangesAsync();
+
+        var createdOrder = await _orderService.CreateOrderAsync(order);
 
         return StatusCode(StatusCodes.Status201Created, order.ToResponse());
     }
@@ -120,14 +128,14 @@ public sealed class OrdersController : ControllerBase
             return NotFound(new ErrorResponse("Order not found."));
         }
 
-        if (order.Status != "PendingPayment")
+        if (order.Status != OrderStatus.PendingPayment)
         {
             return BadRequest(new ErrorResponse("Order cannot be cancelled in current status."));
         }
 
         var now = DateTime.UtcNow;
 
-        order.Status = "Cancelled";
+        order.Status = OrderStatus.Cancelled;
         order.UpdatedAtUtc = now;
         order.StatusHistory.Add(new OrderStatusHistory
         {
@@ -157,14 +165,14 @@ public sealed class OrdersController : ControllerBase
             return NotFound(new ErrorResponse("Order not found."));
         }
 
-        if (order.Status != "PendingPayment")
+        if (order.Status != OrderStatus.PendingPayment)
         {
             return BadRequest(new ErrorResponse("Only orders with PendingPayment status can be paid."));
         }
 
         var now = DateTime.UtcNow;
 
-        order.Status = "Paid";
+        order.Status = OrderStatus.Paid;
         order.UpdatedAtUtc = now;
         order.StatusHistory.Add(new OrderStatusHistory
         {
@@ -194,14 +202,14 @@ public sealed class OrdersController : ControllerBase
             return NotFound(new ErrorResponse("Order not found."));
         }
 
-        if (order.Status != "Paid")
+        if (order.Status != OrderStatus.Paid)
         {
             return BadRequest(new ErrorResponse("Only paid orders can be delivered."));
         }
 
         var now = DateTime.UtcNow;
 
-        order.Status = "Delivered";
+        order.Status = OrderStatus.Delivered;
         order.UpdatedAtUtc = now;
         order.StatusHistory.Add(new OrderStatusHistory
         {

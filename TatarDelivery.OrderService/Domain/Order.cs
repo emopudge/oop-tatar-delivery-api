@@ -12,7 +12,8 @@ public sealed class Order
 
     public decimal DeliveryPrice { get; set; }
 
-    public string Status { get; set; } = "PendingPayment";
+    public OrderStatus Status { get; set; }
+    public string? PaymentId { get; set; }
 
     public DateTime CreatedAtUtc { get; set; }
 
