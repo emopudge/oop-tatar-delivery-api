@@ -13,10 +13,13 @@ public class Program
         var builder = WebApplication.CreateBuilder(args);
 
         builder.Services.AddControllers();
+
         builder.Services.AddDbContext<AppDbContext>(options =>
             options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
         builder.Services.AddEndpointsApiExplorer();
         builder.Services.AddScoped<IOrderService, TatarDelivery.OrderService.Services.OrderService>();
+
+        builder.Services.AddScoped<IOrderService, Services.OrderService>();
         builder.Services.AddSingleton<IPaymentClient, MockTinkoffPaymentClient>();
 
         builder.Services.AddSwaggerGen(options =>

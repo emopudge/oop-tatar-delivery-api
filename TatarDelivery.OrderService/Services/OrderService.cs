@@ -17,6 +17,10 @@ public class OrderService : IOrderService
     private readonly IPaymentClient _paymentClient;
     private readonly ILogger<OrderService> _logger;
 
+    private AsyncPolicy<PaymentResponse> _retryPolicy = null!;
+    private AsyncPolicy<PaymentResponse> _timeoutPolicy = null!;
+    private AsyncPolicy<PaymentResponse> _combinedPolicy = null!;
+
     public OrderService(
         AppDbContext context,
         IPaymentClient paymentClient,
@@ -25,14 +29,22 @@ public class OrderService : IOrderService
         _context = context ?? throw new ArgumentNullException(nameof(context));
         _paymentClient = paymentClient ?? throw new ArgumentNullException(nameof(paymentClient));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+
+        _retryPolicy = Policy<PaymentResponse>
+            .HandleResult(r => r.Status != "CONFIRMED")
+            .Or<HttpRequestException>()
+            .Or<TaskCanceledException>()
+            .WaitAndRetryAsync(
+                retryCount: 3,
+                sleepDurationProvider: attempt => TimeSpan.FromMilliseconds(Math.Pow(2, attempt) * 500));
+        _combinedPolicy = _retryPolicy.WrapAsync(_timeoutPolicy);
     }
 
     public async Task<Order> CreateOrderAsync(Order order)
     {
         if (order is null) throw new ArgumentNullException(nameof(order));
-
         if (order.Items.Count == 0)
-            throw new ArgumentException("В заказе должен быть хотя бы что-то.");
+            throw new ArgumentException("В заказе должен быть хотя бы что-то.", nameof(order));
 
         order.Status = OrderStatus.PendingPayment;
         order.CreatedAtUtc = DateTime.UtcNow;
@@ -51,19 +63,9 @@ public class OrderService : IOrderService
                 $"Оплата заказа {order.Id}"
             );
 
-            var retryPolicy = Polly.Policy
-                .HandleResult<PaymentResponse>(r => r.Status != "CONFIRMED")
-                .Or<HttpRequestException>()
-                .Or<TaskCanceledException>()
-                .WaitAndRetryAsync(
-                    retryCount: 3,
-                    sleepDurationProvider: attempt => TimeSpan.FromMilliseconds(Math.Pow(2, attempt) * 500));
-
             var timeoutPolicy = Polly.Policy.TimeoutAsync<PaymentResponse>(TimeSpan.FromSeconds(10));
 
-            var result = await retryPolicy
-                .WrapAsync(timeoutPolicy)
-                .ExecuteAsync(async (CancellationToken ct) =>
+            var result = await _combinedPolicy.ExecuteAsync(async (CancellationToken ct) =>
                 {
                     _logger.LogInformation("Пробуем создать оплату для заказа {OrderId}...", order.Id);
                     return await _paymentClient.CreatePaymentAsync(paymentRequest);
@@ -135,16 +137,36 @@ public class OrderService : IOrderService
         if (order.Status != OrderStatus.PendingPayment)
             return false;
 
-        var statusResponse = await _paymentClient.GetPaymentStatusAsync(paymentId);
-        if (statusResponse.Status != "CONFIRMED")
+        try
+        {
+            var statusResponse = await _combinedPolicy.ExecuteAsync(async (ct) =>
+            {
+                _logger.LogInformation("Проверка статуса платежа {PaymentId} для заказа {OrderId}...", paymentId, orderId);
+                return await _paymentClient.GetPaymentStatusAsync(paymentId);
+            }, CancellationToken.None);
+
+            if (statusResponse.Status == "CONFIRMED")
+            {
+                order.Status = OrderStatus.Paid;
+                order.PaymentId = paymentId;
+                order.UpdatedAtUtc = DateTime.UtcNow;
+                _context.Orders.Update(order);
+                await _context.SaveChangesAsync();
+                return true;
+            }
+
+            _logger.LogWarning("Статус платежа {PaymentId} не CONFIRMED: {Status}", paymentId, statusResponse.Status);
             return false;
-
-        order.Status = OrderStatus.Paid;
-        order.PaymentId = paymentId;
-        order.UpdatedAtUtc = DateTime.UtcNow;
-        _context.Orders.Update(order);
-        await _context.SaveChangesAsync();
-
-        return true;
+        }
+        catch (TaskCanceledException tce) when (tce.Message.Contains("timeout"))
+        {
+            _logger.LogError(tce, "Timeout при проверке статуса платежа {PaymentId} для заказа {OrderId}.", paymentId, orderId);
+            return false;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Ошибка при проверке статуса платежа {PaymentId} для заказа {OrderId}.", paymentId, orderId);
+            return false;
+        }
     }
 }
