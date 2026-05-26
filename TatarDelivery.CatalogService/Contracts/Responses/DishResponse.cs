@@ -5,5 +5,6 @@ public record DishResponse(
     string Name,
     string Description,
     decimal Price,
+    string? ImageUrl,
     bool IsAvailable,
     int CategoryId);

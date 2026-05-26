@@ -21,7 +21,7 @@ public sealed class OrdersController : ControllerBase
     private readonly AppDbContext _dbContext;
     private readonly IOrderService _orderService;
 
-    public OrdersController(AppDbContext dbContext)
+    public OrdersController(AppDbContext dbContext, IOrderService orderService)
     {
         _dbContext = dbContext;
         _orderService = orderService ?? throw new System.ArgumentNullException(nameof(orderService));
@@ -70,12 +70,10 @@ public sealed class OrdersController : ControllerBase
             ChangedBy = "user"
         });
 
-        _dbContext.Orders.Add(order);
-        await _dbContext.SaveChangesAsync();
 
         var createdOrder = await _orderService.CreateOrderAsync(order);
 
-        return StatusCode(StatusCodes.Status201Created, order.ToResponse());
+        return StatusCode(StatusCodes.Status201Created, createdOrder.ToResponse());
     }
     [HttpGet("{id:int}")]
     [ProducesResponseType(typeof(OrderResponse), StatusCodes.Status200OK)]

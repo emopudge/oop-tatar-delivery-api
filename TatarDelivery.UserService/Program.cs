@@ -88,7 +88,11 @@ public class Program
             var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
             dbContext.Database.EnsureCreated();
         }
-
+        // 🔓 Разрешаем CORS для разработки (все источники, все методы)
+        app.UseCors(policy => policy
+            .AllowAnyOrigin()
+            .AllowAnyMethod()
+            .AllowAnyHeader());
         app.UseSwagger();
         app.UseSwaggerUI();
 
