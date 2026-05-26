@@ -193,6 +193,9 @@ dotnet ef database update
 - Корзина: добавь блюдо → открой корзину (счётчик обновился, сумма посчитана)
 - Доставка: введи `55.796`, `49.108` → «Проверить доставку» (должно быть "Доставка доступна")
 - Оплата: нажми «Оформить заказ» (должен создаться заказ с номером)
+<img width="1525" height="442" alt="image" src="https://github.com/user-attachments/assets/9984218e-1404-4a96-9441-d3c17e88e42f" />
+<img width="1217" height="859" alt="image" src="https://github.com/user-attachments/assets/a4558664-abc8-417d-8e97-8ce5a988b5ac" />
+<img width="1201" height="768" alt="image" src="https://github.com/user-attachments/assets/347dfd84-c4c2-488c-bccf-8041b3deee62" />
 
 ## Частые проблемы и решения
 
