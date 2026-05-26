@@ -1,15 +1,9 @@
-using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Mvc;
-using Polly;
-using Polly.Extensions.Http;
-using TatarDelivery.OrderService.Clients;
 using TatarDelivery.OrderService.Contracts.Requests;
 using TatarDelivery.OrderService.Contracts.Responses;
-using TatarDelivery.OrderService.Contracts.Responses.Mappings;
-using TatarDelivery.OrderService.Data;
-using TatarDelivery.OrderService.Domain;
 using TatarDelivery.OrderService.Services;
 using System.Threading.Tasks;
+using TatarDelivery.OrderService.Contracts.Responses.Mappings;
 
 namespace TatarDelivery.OrderService.Controllers;
 
@@ -18,13 +12,11 @@ namespace TatarDelivery.OrderService.Controllers;
 [Produces("application/json")]
 public sealed class OrdersController : ControllerBase
 {
-    private readonly AppDbContext _dbContext;
     private readonly IOrderService _orderService;
 
-    public OrdersController(AppDbContext dbContext)
+    public OrdersController(IOrderService orderService)
     {
-        _dbContext = dbContext;
-        _orderService = orderService ?? throw new System.ArgumentNullException(nameof(orderService));
+        _orderService = orderService ?? throw new ArgumentNullException(nameof(orderService));
     }
 
     [HttpPost]
@@ -34,205 +26,50 @@ public sealed class OrdersController : ControllerBase
     {
         if (request.Items.Count == 0)
         {
-            return BadRequest(new ErrorResponse("Order must contain at least one item."));
+            return BadRequest(new ErrorResponse("В заказе должно быть хотя бы что-то."));
         }
 
-        var now = DateTime.UtcNow;
-
-        var order = new Order
+        var order = new Domain.Order
         {
             UserId = request.UserId,
             AddressId = request.AddressId,
-            CreatedAtUtc = now,
-            UpdatedAtUtc = now
+            CreatedAtUtc = DateTime.UtcNow,
+            UpdatedAtUtc = DateTime.UtcNow
         };
 
-        foreach (var requestItem in request.Items)
+        foreach (var item in request.Items)
         {
-            var itemPrice = GetMockDishPrice(requestItem.DishId);
-
-            order.Items.Add(new OrderItem
+            var price = GetMockDishPrice(item.DishId);
+            order.Items.Add(new Domain.OrderItem
             {
-                DishId = requestItem.DishId,
-                Quantity = requestItem.Quantity,
-                Price = itemPrice
+                DishId = item.DishId,
+                Quantity = item.Quantity,
+                Price = price
             });
         }
 
-        var itemsTotal = order.Items.Sum(item => item.Price * item.Quantity);
+        var itemsTotal = order.Items.Sum(i => i.Price * i.Quantity);
         order.DeliveryPrice = Math.Round(itemsTotal * 0.1m, 2);
         order.TotalPrice = itemsTotal + order.DeliveryPrice;
 
-        order.StatusHistory.Add(new OrderStatusHistory
+        order.StatusHistory.Add(new Domain.OrderStatusHistory
         {
-            Status = order.Status,
-            ChangedAtUtc = now,
+            Status = OrderStatus.PendingPayment,
+            ChangedAtUtc = DateTime.UtcNow,
             ChangedBy = "user"
         });
-
-        _dbContext.Orders.Add(order);
-        await _dbContext.SaveChangesAsync();
 
         var createdOrder = await _orderService.CreateOrderAsync(order);
-
-        return StatusCode(StatusCodes.Status201Created, order.ToResponse());
+        return StatusCode(StatusCodes.Status201Created);
     }
-    [HttpGet("{id:int}")]
-    [ProducesResponseType(typeof(OrderResponse), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<OrderResponse>> GetOrder(int id)
+
+    private static decimal GetMockDishPrice(int dishId) => dishId switch
     {
-        var order = await _dbContext.Orders
-            .Include(order => order.Items)
-            .Include(order => order.StatusHistory)
-            .AsNoTracking()
-            .FirstOrDefaultAsync(order => order.Id == id);
-
-        if (order is null)
-        {
-            return NotFound(new ErrorResponse("Order not found."));
-        }
-
-        return Ok(order.ToResponse());
-    }
-
-    [HttpGet("my")]
-    [ProducesResponseType(typeof(IReadOnlyCollection<OrderResponse>), StatusCodes.Status200OK)]
-    public async Task<ActionResult<IReadOnlyCollection<OrderResponse>>> GetMyOrders(
-    [FromQuery] int userId)
-    {
-        var orders = await _dbContext.Orders
-            .Include(order => order.Items)
-            .Include(order => order.StatusHistory)
-            .AsNoTracking()
-            .Where(order => order.UserId == userId)
-            .OrderByDescending(order => order.CreatedAtUtc)
-            .ToListAsync();
-
-        return Ok(orders.Select(order => order.ToResponse()).ToList());
-    }
-
-    [HttpPost("{id:int}/cancel")]
-    [ProducesResponseType(typeof(OrderResponse), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<OrderResponse>> CancelOrder(int id)
-    {
-        var order = await _dbContext.Orders
-            .Include(order => order.Items)
-            .Include(order => order.StatusHistory)
-            .FirstOrDefaultAsync(order => order.Id == id);
-
-        if (order is null)
-        {
-            return NotFound(new ErrorResponse("Order not found."));
-        }
-
-        if (order.Status != OrderStatus.PendingPayment)
-        {
-            return BadRequest(new ErrorResponse("Order cannot be cancelled in current status."));
-        }
-
-        var now = DateTime.UtcNow;
-
-        order.Status = OrderStatus.Cancelled;
-        order.UpdatedAtUtc = now;
-        order.StatusHistory.Add(new OrderStatusHistory
-        {
-            Status = order.Status,
-            ChangedAtUtc = now,
-            ChangedBy = "user"
-        });
-
-        await _dbContext.SaveChangesAsync();
-
-        return Ok(order.ToResponse());
-    }
-
-    [HttpPost("{id:int}/pay")]
-    [ProducesResponseType(typeof(OrderResponse), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<OrderResponse>> PayOrder(int id)
-    {
-        var order = await _dbContext.Orders
-            .Include(order => order.Items)
-            .Include(order => order.StatusHistory)
-            .FirstOrDefaultAsync(order => order.Id == id);
-
-        if (order is null)
-        {
-            return NotFound(new ErrorResponse("Order not found."));
-        }
-
-        if (order.Status != OrderStatus.PendingPayment)
-        {
-            return BadRequest(new ErrorResponse("Only orders with PendingPayment status can be paid."));
-        }
-
-        var now = DateTime.UtcNow;
-
-        order.Status = OrderStatus.Paid;
-        order.UpdatedAtUtc = now;
-        order.StatusHistory.Add(new OrderStatusHistory
-        {
-            Status = order.Status,
-            ChangedAtUtc = now,
-            ChangedBy = "user"
-        });
-
-        await _dbContext.SaveChangesAsync();
-
-        return Ok(order.ToResponse());
-    }
-
-    [HttpPost("{id:int}/deliver")]
-    [ProducesResponseType(typeof(OrderResponse), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<OrderResponse>> DeliverOrder(int id)
-    {
-        var order = await _dbContext.Orders
-            .Include(order => order.Items)
-            .Include(order => order.StatusHistory)
-            .FirstOrDefaultAsync(order => order.Id == id);
-
-        if (order is null)
-        {
-            return NotFound(new ErrorResponse("Order not found."));
-        }
-
-        if (order.Status != OrderStatus.Paid)
-        {
-            return BadRequest(new ErrorResponse("Only paid orders can be delivered."));
-        }
-
-        var now = DateTime.UtcNow;
-
-        order.Status = OrderStatus.Delivered;
-        order.UpdatedAtUtc = now;
-        order.StatusHistory.Add(new OrderStatusHistory
-        {
-            Status = order.Status,
-            ChangedAtUtc = now,
-            ChangedBy = "delivery"
-        });
-
-        await _dbContext.SaveChangesAsync();
-
-        return Ok(order.ToResponse());
-    }
-
-    private static decimal GetMockDishPrice(int dishId)
-    {
-        return dishId switch
-        {
-            1 => 350m,
-            2 => 420m,
-            3 => 280m,
-            4 => 500m,
-            5 => 250m,
-            _ => 300m
-        };
-    }
+        1 => 350m,
+        2 => 420m,
+        3 => 280m,
+        4 => 500m,
+        5 => 250m,
+        _ => 300m
+    };
 }
