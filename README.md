@@ -148,6 +148,9 @@ code .
 
 Если порт занят, измени его в `launchSettings.json` соответствующего сервиса.
 
+<img width="1259" height="888" alt="image" src="https://github.com/user-attachments/assets/8377f268-bc3a-4baf-88d4-c4d4e20788dc" />
+
+
 ### Шаг 4: Настрой базу данных для CatalogService (только первый раз)
 
 Подключение к PostgreSQL в Docker (опционально, для отладки):
