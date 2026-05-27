@@ -11,15 +11,18 @@ public class Program
     public static void Main(string[] args)
     {
         var builder = WebApplication.CreateBuilder(args);
-
+        
         builder.Services.AddControllers();
+        builder.Services.AddHttpClient();
 
         builder.Services.AddDbContext<AppDbContext>(options =>
             options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
+            
         builder.Services.AddEndpointsApiExplorer();
         builder.Services.AddScoped<IOrderService, TatarDelivery.OrderService.Services.OrderService>();
-
-        builder.Services.AddScoped<IOrderService, Services.OrderService>();
+        // Убрана дублирующая регистрация IOrderService, если она была
+        // builder.Services.AddScoped<IOrderService, Services.OrderService>(); 
+        
         builder.Services.AddSingleton<IPaymentClient, MockTinkoffPaymentClient>();
 
         builder.Services.AddSwaggerGen(options =>
@@ -31,13 +34,15 @@ public class Program
                 Description = "Order Service для сервиса заказа татарской еды"
             });
         });
+        builder.Services.AddHttpClient("TinkoffMock");
 
         var app = builder.Build();
-        // 🔓 Разрешаем CORS для разработки (все источники, все методы)
+        
         app.UseCors(policy => policy
             .AllowAnyOrigin()
             .AllowAnyMethod()
             .AllowAnyHeader());
+
         using (var scope = app.Services.CreateScope())
         {
             var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();

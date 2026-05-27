@@ -59,7 +59,6 @@ public sealed class OrdersController : ControllerBase
             ChangedBy = "user"
         });
 
-
         var createdOrder = await _orderService.CreateOrderAsync(order);
 
         return StatusCode(StatusCodes.Status201Created, createdOrder.ToResponse());
