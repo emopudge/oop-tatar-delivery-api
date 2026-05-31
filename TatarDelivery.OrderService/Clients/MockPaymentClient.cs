@@ -6,6 +6,7 @@ using System.Text.Json;
 using TatarDelivery.OrderService.Contracts.Requests;
 using TatarDelivery.OrderService.Contracts.Responses;
 using System.Threading.Tasks;
+using System.Collections.Concurrent;
 
 namespace TatarDelivery.OrderService.Clients;
 
@@ -14,6 +15,7 @@ public class MockTinkoffPaymentClient : IPaymentClient
     private readonly HttpClient _httpClient;
     private readonly ILogger<MockTinkoffPaymentClient> _logger;
     private readonly string _mockBaseUrl;
+    private static readonly ConcurrentDictionary<string, PaymentResponse> _paymentCache = new();
 
     public MockTinkoffPaymentClient(IHttpClientFactory httpClientFactory,
         IConfiguration configuration,

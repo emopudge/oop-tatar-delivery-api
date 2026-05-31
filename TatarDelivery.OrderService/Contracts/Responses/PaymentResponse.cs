@@ -2,6 +2,14 @@ using System.Text.Json.Serialization;
 
 namespace TatarDelivery.OrderService.Contracts.Responses;
 
-public record PaymentResponse(
-    [property: JsonPropertyName("paymentId")] string PaymentId,
-    [property: JsonPropertyName("status")] string Status);
+public class PaymentResponse
+{
+    [JsonPropertyName("paymentId")]
+    public string? PaymentId { get; set; }
+    
+    [JsonPropertyName("status")]
+    public string Status { get; set; } = string.Empty;
+    
+    [JsonPropertyName("message")]
+    public string? Message { get; set; }
+}

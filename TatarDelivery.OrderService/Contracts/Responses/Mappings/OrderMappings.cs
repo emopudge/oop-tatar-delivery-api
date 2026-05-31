@@ -13,6 +13,7 @@ public static class OrderMappings
             order.TotalPrice,
             order.DeliveryPrice,
             order.Status,
+            order.PaymentId,
             order.CreatedAtUtc,
             order.UpdatedAtUtc,
             order.Items.Select(item => new OrderItemResponse(
@@ -27,6 +28,36 @@ public static class OrderMappings
                 history.ChangedAtUtc,
                 history.ChangedBy
             )).ToList()
+        );
+    }
+
+    public static OrderItemResponse MapToOrderResponse(this OrderItem orderItem)
+    {
+        if (orderItem is null)
+        {
+            throw new ArgumentNullException(nameof(orderItem));
+        }
+
+        return new OrderItemResponse(
+            Id: orderItem.Id,
+            DishId: orderItem.DishId,
+            Quantity: orderItem.Quantity,
+            Price: orderItem.Price
+        );
+    }
+
+    public static OrderStatusHistoryResponse MapToOrderStatusHistoryResponse(this OrderStatusHistory statusHistory)
+    {
+        if (statusHistory is null)
+        {
+            throw new ArgumentNullException(nameof(statusHistory));
+        }
+
+        return new OrderStatusHistoryResponse(
+            Id: statusHistory.Id,
+            Status: statusHistory.Status,
+            ChangedAtUtc: statusHistory.ChangedAtUtc,
+            ChangedBy: statusHistory.ChangedBy
         );
     }
 }

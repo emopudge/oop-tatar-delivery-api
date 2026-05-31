@@ -7,6 +7,7 @@ public sealed record OrderResponse(
     decimal TotalPrice,
     decimal DeliveryPrice,
     OrderStatus Status,
+    string? PaymentID,
     DateTime CreatedAtUtc,
     DateTime UpdatedAtUtc,
     IReadOnlyCollection<OrderItemResponse> Items,

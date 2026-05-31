@@ -11,12 +11,13 @@ public class Program
     public static void Main(string[] args)
     {
         var builder = WebApplication.CreateBuilder(args);
-
         builder.Services.AddControllers();
+        builder.Services.AddHttpClient();
 
         builder.Services.AddDbContext<AppDbContext>(options =>
             options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
 
+        builder.Services.AddEndpointsApiExplorer();
         builder.Services.AddScoped<IOrderService, Services.OrderService>();
         builder.Services.AddSingleton<IPaymentClient, MockTinkoffPaymentClient>();
 
@@ -29,6 +30,7 @@ public class Program
                 Description = "Order Service для сервиса заказа татарской еды"
             });
         });
+        builder.Services.AddHttpClient("TinkoffMock");
 
         var app = builder.Build();
 
