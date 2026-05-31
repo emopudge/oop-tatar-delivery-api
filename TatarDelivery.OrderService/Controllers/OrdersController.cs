@@ -64,6 +64,7 @@ public sealed class OrdersController : ControllerBase
         var createdOrder = await _orderService.CreateOrderAsync(order);
         var orderResponse = OrderMappings.MapToOrderResponse;
         return StatusCode(StatusCodes.Status201Created);
+
     }
 
     [HttpGet("{id:int}")]

@@ -38,6 +38,7 @@ public class OrderService : IOrderService
             .WaitAndRetryAsync(
                 retryCount: 3,
                 sleepDurationProvider: attempt => TimeSpan.FromMilliseconds(Math.Pow(2, attempt) * 500));
+
         _timeoutPolicy = Policy.TimeoutAsync<PaymentResponse>(TimeSpan.FromSeconds(10));
         _combinedPolicy = _retryPolicy.WrapAsync(_timeoutPolicy);
     }
@@ -64,8 +65,6 @@ public class OrderService : IOrderService
                 order.TotalPrice,
                 $"Оплата заказа {order.Id}"
             );
-
-            var timeoutPolicy = Polly.Policy.TimeoutAsync<PaymentResponse>(TimeSpan.FromSeconds(10));
 
             var result = await _combinedPolicy.ExecuteAsync(async (CancellationToken ct) =>
             {

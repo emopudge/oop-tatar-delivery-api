@@ -1,0 +1,1130 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>🍲 Tatar Delivery</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Leaflet CSS -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+      integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+      crossorigin=""/>  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Ruslan+Display&display=swap" rel="stylesheet">  <style>
+    :root {
+      --bg-primary: #0a0a0f;
+      --bg-secondary: #13131f;
+      --accent: #ffd700;
+      --font-heading: 'Playfair Display', serif;
+      --font-body: 'Inter', sans-serif;
+      --accent-hover: #ffed4e;
+      --text-primary: #ffffff;
+      --text-secondary: #b0b0c0;
+      --success: #00d1a0;
+      --error: #ff4757;
+      --card-shadow: 0 8px 32px rgba(0,0,0,0.4);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    body {
+      font-family: var(--font-body);
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      min-height: 100vh;
+      overflow-x: hidden;
+      position: relative;
+    }
+
+    /* 🌀 Анимированный фон */
+    .bg-animation {
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: 
+        linear-gradient(135deg, rgba(10,10,15,0.9) 0%, rgba(19,19,31,0.95) 100%),
+        url('https://unsplash.com/photos/red-chili-pepper-and-green-leaves-on-brown-wooden-round-plate-52X9iZG1ceE');
+      background-size: cover;
+      background-position: center;
+      animation: panBackground 60s linear infinite;
+      z-index: -2;
+    }
+
+    @keyframes panBackground {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    .overlay {
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: radial-gradient(ellipse at center, transparent 0%, rgba(10,10,15,0.7) 100%);
+      z-index: -1;
+    }
+
+    /* 📐 Контейнер */
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 2rem 1rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* 🏷️ Хедер */
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem 0;
+      margin-bottom: 2rem;
+      border-bottom: 1px solid rgba(255,215,0,0.2);
+    }
+
+    .logo {
+      font-family: 'Ruslan Display', cursive;
+      font-size: 3.5rem;
+      font-weight: 400;
+      color: #ffffff;
+      text-shadow: 0 0 30px rgba(255,215,0,0.6);
+      letter-spacing: 1px;
+    }
+
+    .cart-btn {
+      background: var(--accent);
+      color: #000;
+      border: none;
+      padding: 0.75rem 1.5rem;
+      border-radius: 50px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(255,215,0,0.3);
+    }
+
+    .cart-btn:hover {
+      background: var(--accent-hover);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 25px rgba(255,215,0,0.5);
+    }
+
+    .cart-count {
+      background: var(--error);
+      color: white;
+      border-radius: 50%;
+      width: 22px;
+      height: 22px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.8rem;
+      font-weight: 700;
+    }
+
+    /* 🍽️ Сетка блюд */
+    .dishes-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 3rem;
+    }
+
+    .dish-card {
+      background: var(--bg-secondary);
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: var(--card-shadow);
+      transition: all 0.3s ease;
+      border: 1px solid rgba(255,215,0,0.1);
+    }
+
+    .dish-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 12px 40px rgba(0,0,0,0.6);
+      border-color: var(--accent);
+    }
+
+    .dish-image {
+      width: 100%;
+      height: 180px;
+      background: linear-gradient(135deg, #2a2a3a, #1a1a2a);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 3rem;
+      color: var(--accent);
+    }
+
+    .dish-info {
+      padding: 1.25rem;
+    }
+
+    .dish-name {
+      font-family: var(--font-heading);
+      font-size: 1.25rem;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+    }
+
+    .dish-desc {
+      color: var(--text-secondary);
+      font-size: 0.9rem;
+      margin-bottom: 1rem;
+      line-height: 1.4;
+    }
+
+    .dish-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .dish-price {
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: var(--accent);
+    }
+
+    .add-btn {
+      background: transparent;
+      border: 2px solid var(--accent);
+      color: var(--accent);
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .add-btn:hover {
+      background: var(--accent);
+      color: #000;
+    }
+
+    /* 🛒 Модальное окно корзины */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.8);
+      z-index: 100;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+    }
+
+    .modal.active { display: flex; }
+
+    .modal-content {
+      background: var(--bg-secondary);
+      border-radius: 20px;
+      padding: 2rem;
+      max-width: 500px;
+      width: 100%;
+      max-height: 90vh;
+      overflow-y: auto;
+      border: 1px solid var(--accent);
+      box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.5rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid rgba(255,215,0,0.2);
+    }
+
+    .modal-title {
+      font-family: var(--font-heading);
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--accent);
+    }
+
+    .close-btn {
+      background: none;
+      border: none;
+      color: var(--text-secondary);
+      font-size: 1.5rem;
+      cursor: pointer;
+      transition: color 0.2s;
+    }
+
+    .close-btn:hover { color: var(--error); }
+
+    .cart-items {
+      margin-bottom: 1.5rem;
+    }
+
+    .cart-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.75rem 0;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .cart-item-info {
+      flex: 1;
+    }
+
+    .cart-item-name {
+      font-weight: 500;
+      margin-bottom: 0.25rem;
+    }
+
+    .cart-item-price {
+      color: var(--text-secondary);
+      font-size: 0.9rem;
+    }
+
+    .cart-item-qty {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-left: 1rem;
+    }
+
+    .qty-btn {
+      background: var(--bg-primary);
+      border: 1px solid var(--accent);
+      color: var(--accent);
+      width: 28px;
+      height: 28px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+
+    .cart-total {
+      display: flex;
+      justify-content: space-between;
+      font-size: 1.2rem;
+      font-weight: 700;
+      padding: 1rem 0;
+      border-top: 2px solid var(--accent);
+      margin-bottom: 1.5rem;
+    }
+
+    .checkout-btn {
+      width: 100%;
+      background: var(--success);
+      color: #000;
+      border: none;
+      padding: 1rem;
+      border-radius: 12px;
+      font-size: 1.1rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .checkout-btn:hover {
+      background: #00f5c0;
+      transform: translateY(-2px);
+    }
+
+    .checkout-btn:disabled {
+      background: var(--text-secondary);
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    /* 📍 Блок доставки */
+    .delivery-section {
+      background: var(--bg-secondary);
+      border-radius: 16px;
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+      border: 1px solid rgba(255,215,0,0.2);
+    }
+
+    .delivery-title {
+      font-family: var(--font-heading);
+      font-size: 1.2rem;
+      font-weight: 600;
+      margin-bottom: 1rem;
+      color: var(--accent);
+    }
+
+    .coords-inputs {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .coords-inputs input {
+      background: var(--bg-primary);
+      border: 1px solid rgba(255,215,0,0.3);
+      color: var(--text-primary);
+      padding: 0.75rem;
+      border-radius: 8px;
+      font-size: 1rem;
+    }
+
+    .coords-inputs input:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+
+    .check-delivery-btn {
+      background: var(--accent);
+      color: #000;
+      border: none;
+      padding: 0.75rem 1.5rem;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      width: 100%;
+    }
+
+    .check-delivery-btn:hover {
+      background: var(--accent-hover);
+    }
+
+    .delivery-result {
+      margin-top: 1rem;
+      padding: 1rem;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      display: none;
+    }
+
+
+    /* 🗺️ Карта */
+    .map-section {
+    margin-bottom: 3rem;
+    }
+
+    .leaflet-popup-content-wrapper {
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    border-radius: 12px;
+    border: 1px solid var(--accent);
+    }
+
+    .leaflet-popup-content {
+    margin: 12px;
+    font-family: var(--font-body);
+    }
+
+    .leaflet-popup-tip {
+    background: var(--bg-secondary);
+    }
+
+    .restaurant-card {
+    background: var(--bg-primary);
+    padding: 0.75rem;
+    border-radius: 8px;
+    border-left: 3px solid var(--accent);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    }
+
+    .restaurant-card:hover {
+    border-left-color: var(--success);
+    }
+
+    .restaurant-name {
+    font-weight: 600;
+    color: var(--text-primary);
+    }
+
+    .restaurant-radius {
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+    }
+    .delivery-result.success {
+      background: rgba(0,209,160,0.15);
+      border: 1px solid var(--success);
+      color: var(--success);
+      display: block;
+    }
+
+    .delivery-result.error {
+      background: rgba(255,71,87,0.15);
+      border: 1px solid var(--error);
+      color: var(--error);
+      display: block;
+    }
+
+    /* 🔔 Тост-уведомления */
+    .toast {
+      position: fixed;
+      bottom: 2rem;
+      right: 2rem;
+      background: var(--bg-secondary);
+      color: var(--text-primary);
+      padding: 1rem 1.5rem;
+      border-radius: 12px;
+      box-shadow: var(--card-shadow);
+      border-left: 4px solid var(--accent);
+      z-index: 200;
+      animation: slideIn 0.3s ease, fadeOut 0.3s ease 2.7s forwards;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    @keyframes slideIn {
+      from { transform: translateX(100%); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+
+    @keyframes fadeOut {
+      to { opacity: 0; transform: translateX(100%); }
+    }
+
+    /* 📱 Адаптив */
+    @media (max-width: 768px) {
+      .dishes-grid { grid-template-columns: 1fr; }
+      .coords-inputs { grid-template-columns: 1fr; }
+      header { flex-direction: column; gap: 1rem; }
+    }
+  </style>
+</head>
+<body>
+  <div class="bg-animation"></div>
+  <div class="overlay"></div>
+
+  <div class="container">
+    <header>
+    <div class="logo">🍲 Tatar Delivery</div>
+    <div style="display: flex; gap: 1rem; align-items: center;">
+        <span id="user-info" style="color: var(--text-secondary); font-size: 0.9rem;"></span>
+        <button id="auth-btn" class="add-btn" onclick="openAuthModal()">🔑 Войти</button>
+        <button class="cart-btn" onclick="openCart()">
+        <i class="fas fa-shopping-cart"></i>
+        Корзина <span class="cart-count" id="cartCount">0</span>
+        </button>
+    </div>
+    </header>
+
+    <!-- 📍 Проверка доставки -->
+    <div class="delivery-section">
+      <div class="delivery-title">📍 Проверить зону доставки</div>
+      <div class="coords-inputs">
+        <input type="number" id="lat" placeholder="Широта" step="0.001" value="55.796"/>
+        <input type="number" id="lon" placeholder="Долгота" step="0.001" value="49.108"/>
+      </div>
+      <button class="check-delivery-btn" onclick="checkDelivery()">
+        <i class="fas fa-map-marker-alt"></i> Проверить доставку
+      </button>
+      <div id="deliveryResult" class="delivery-result"></div>
+    </div>
+
+    <!-- 🗺️ Интерактивная карта -->
+    <div class="map-section">
+    <h2 style="color: var(--accent); margin-bottom: 1rem;">📍 Рестораны и зоны доставки</h2>
+    <div id="map" style="height: 500px; border-radius: 16px; box-shadow: var(--card-shadow);"></div>
+    <div style="margin-top: 1rem; padding: 1rem; background: var(--bg-secondary); border-radius: 12px;">
+        <h3 style="color: var(--accent); margin-bottom: 0.5rem;">🏪 Наши рестораны:</h3>
+        <div id="restaurants-list" style="display: grid; gap: 0.5rem;">
+        <!-- Список ресторанов загрузится сюда -->
+        </div>
+    </div>
+    </div>
+
+    <!-- 🍽️ Каталог блюд -->
+    <h2 style="margin-bottom: 1.5rem; color: var(--accent);">🥘 Меню</h2>
+    <div class="dishes-grid" id="dishesGrid">
+      <!-- Блюда загрузятся сюда -->
+    </div>
+  </div>
+
+  <!-- 🛒 Модальное окно корзины -->
+  <div class="modal" id="cartModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div class="modal-title">🛒 Ваша корзина</div>
+        <button class="close-btn" onclick="closeCart()">&times;</button>
+      </div>
+      <div class="cart-items" id="cartItems">
+        <div style="color: var(--text-secondary); text-align: center;">Корзина пуста</div>
+      </div>
+      <div class="cart-total">
+        <span>Итого:</span>
+        <span id="cartTotal">0 ₽</span>
+      </div>
+      <button class="checkout-btn" id="checkoutBtn" onclick="checkout()" disabled>
+        Оформить заказ
+      </button>
+    </div>
+  </div>
+
+  <!-- 🔐 Модальное окно авторизации -->
+    <div class="modal" id="authModal">
+    <div class="modal-content" style="max-width: 400px;">
+        <div class="modal-header">
+        <div class="modal-title">🔑 Вход / Регистрация</div>
+        <button class="close-btn" onclick="closeAuthModal()">&times;</button>
+        </div>
+        
+        <!-- Табы -->
+        <div style="display: flex; margin-bottom: 1.5rem; border-bottom: 1px solid var(--accent);">
+        <button id="tab-login" class="add-btn" style="border-radius: 8px 8px 0 0; border-bottom: none;" onclick="switchAuthTab('login')">Вход</button>
+        <button id="tab-register" class="add-btn" style="border-radius: 8px 8px 0 0; border-bottom: none; opacity: 0.5;" onclick="switchAuthTab('register')">Регистрация</button>
+        </div>
+
+        <!-- Форма Входа -->
+        <div id="form-login">
+        <input type="email" id="login-email" placeholder="Email" style="width: 100%; margin-bottom: 1rem;">
+        <input type="password" id="login-password" placeholder="Пароль" style="width: 100%; margin-bottom: 1rem;">
+        <button class="checkout-btn" onclick="login()">Войти</button>
+        </div>
+
+        <!-- Форма Регистрации -->
+        <div id="form-register" style="display: none;">
+        <input type="text" id="reg-name" placeholder="Имя" style="width: 100%; margin-bottom: 1rem;">
+        <input type="email" id="reg-email" placeholder="Email" style="width: 100%; margin-bottom: 1rem;">
+        <input type="tel" id="reg-phone" placeholder="Телефон" style="width: 100%; margin-bottom: 1rem;">
+        <input type="password" id="reg-password" placeholder="Пароль" style="width: 100%; margin-bottom: 1rem;">
+        <button class="checkout-btn" onclick="register()">Зарегистрироваться</button>
+        </div>
+        
+        <div id="auth-message" style="margin-top: 1rem; text-align: center; color: var(--error);"></div>
+    </div>
+    </div>
+
+  <script>
+    // 🔧 КОНФИГУРАЦИЯ
+    const API = {
+      catalog: 'http://localhost:5078',
+      order: 'http://localhost:5007',
+      delivery: 'http://localhost:5000',
+      user: 'http://localhost:5100'
+    };
+
+    // 🗺️ Данные о ресторанах (координаты и радиус доставки)
+    const restaurants = [
+    { id: 1, name: "Эчпочмак House", lat: 55.790, lon: 49.110, radius: 5.0, address: "ул. Баумана, 15" },
+    { id: 2, name: "Кыстыбый Bar", lat: 55.785, lon: 49.120, radius: 3.0, address: "ул. Петербургская, 42" },
+    { id: 3, name: "Татарская усадьба", lat: 55.800, lon: 49.100, radius: 7.0, address: "пр. Победы, 100" }
+    ];
+
+    // Инициализация карты
+    let map;
+    let markers = [];
+    let circles = [];
+
+    function initMap() {
+    // Центр карты (Казань)
+    map = L.map('map').setView([55.796, 49.108], 13);
+    
+    // Добавляем слой OpenStreetMap
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors',
+        maxZoom: 19
+    }).addTo(map);
+    
+    // Добавляем маркеры и зоны доставки
+    restaurants.forEach(restaurant => {
+        addRestaurantToMap(restaurant);
+    });
+    
+    // Показываем список ресторанов
+    renderRestaurantsList();
+    }
+
+    function addRestaurantToMap(restaurant) {
+    // Добавляем маркер
+    const marker = L.marker([restaurant.lat, restaurant.lon])
+        .addTo(map)
+        .bindPopup(`
+        <div style="font-family: var(--font-body);">
+            <h3 style="color: var(--accent); margin: 0 0 8px 0;">🏪 ${restaurant.name}</h3>
+            <p style="margin: 4px 0;"><strong>Адрес:</strong> ${restaurant.address}</p>
+            <p style="margin: 4px 0;"><strong>Радиус доставки:</strong> ${restaurant.radius} км</p>
+        </div>
+        `);
+    markers.push(marker);
+    
+    // Добавляем круг зоны доставки
+    const circle = L.circle([restaurant.lat, restaurant.lon], {
+        color: '#ffd700',
+        fillColor: '#ffd700',
+        fillOpacity: 0.15,
+        radius: restaurant.radius * 1000 // радиус в метрах
+    }).addTo(map);
+    circles.push(circle);
+    }
+
+    function renderRestaurantsList() {
+    const container = document.getElementById('restaurants-list');
+    container.innerHTML = restaurants.map(r => `
+        <div class="restaurant-card">
+        <div>
+            <div class="restaurant-name">🏪 ${r.name}</div>
+            <div class="restaurant-radius">📍 ${r.address} • Радиус: ${r.radius} км</div>
+        </div>
+        <button class="add-btn" onclick="centerMapOnRestaurant(${r.id})">Показать</button>
+        </div>
+    `).join('');
+    }
+
+    function centerMapOnRestaurant(id) {
+    const restaurant = restaurants.find(r => r.id === id);
+    if (restaurant) {
+        map.setView([restaurant.lat, restaurant.lon], 15);
+        // Открываем попап
+        const markerIndex = restaurants.findIndex(r => r.id === id);
+        if (markers[markerIndex]) {
+        markers[markerIndex].openPopup();
+        }
+    }
+    }
+
+    // Инициализируем карту при загрузке страницы
+    document.addEventListener('DOMContentLoaded', () => {
+    loadDishes();
+    initMap();
+    });
+
+    // 🛒 Состояние корзины
+    let cart = [];
+    let deliveryInfo = null;
+
+    // 🍽️ Загрузка блюд при старте
+    document.addEventListener('DOMContentLoaded', loadDishes);
+
+    // 🔐 Глобальная переменная для текущего пользователя
+    let currentUser = null;
+
+    // Загрузка данных при старте
+    document.addEventListener('DOMContentLoaded', () => {
+    const savedUser = localStorage.getItem('tatarUser');
+    if (savedUser) {
+        currentUser = JSON.parse(savedUser);
+        updateAuthUI();
+    }
+    loadDishes();
+    initMap();
+    });
+
+    // Переключение табов Вход/Регистрация
+    function switchAuthTab(tab) {
+    document.getElementById('form-login').style.display = tab === 'login' ? 'block' : 'none';
+    document.getElementById('form-register').style.display = tab === 'register' ? 'block' : 'none';
+    
+    document.getElementById('tab-login').style.opacity = tab === 'login' ? '1' : '0.5';
+    document.getElementById('tab-register').style.opacity = tab === 'register' ? '1' : '0.5';
+    document.getElementById('auth-message').textContent = '';
+    }
+
+    function openAuthModal() { document.getElementById('authModal').classList.add('active'); }
+    function closeAuthModal() { document.getElementById('authModal').classList.remove('active'); }
+
+    // 🚪 Регистрация
+    async function register() {
+        const name = document.getElementById('reg-name').value.trim();
+        const email = document.getElementById('reg-email').value.trim();
+        const phone = document.getElementById('reg-phone').value.trim();
+        const password = document.getElementById('reg-password').value;
+
+        try {
+            const res = await fetch(`${API.user}/users/register`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ fullName: name, email, phone, password })
+            });
+
+            const data = await res.json().catch(() => ({}));
+            
+            // Извлекаем понятное сообщение об ошибке из ответа твоего API
+            let errorMsg = 'Неизвестная ошибка';
+            if (data.errors) {
+            errorMsg = Object.values(data.errors).flat().join(', ');
+            } else if (data.title) {
+            errorMsg = data.title;
+            } else if (data.message) {
+            errorMsg = data.message;
+            }
+
+            if (!res.ok) throw new Error(`[${res.status}] ${errorMsg}`);
+            
+            // Успех
+            document.getElementById('auth-message').textContent = '✅ Аккаунт создан! Теперь войдите.';
+            document.getElementById('auth-message').style.color = 'var(--success)';
+            switchAuthTab('login');
+            document.getElementById('login-email').value = email;
+        } catch (err) {
+            document.getElementById('auth-message').textContent = err.message;
+            document.getElementById('auth-message').style.color = 'var(--error)';
+            console.error('Register error:', err);
+        }
+        }
+
+    // 🚪 Вход
+    async function login() {
+    const email = document.getElementById('login-email').value;
+    const password = document.getElementById('login-password').value;
+
+    try {
+        const res = await fetch(`${API.user}/users/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+        });
+
+        if (!res.ok) throw new Error('Неверный email или пароль');
+
+        const data = await res.json();
+        
+        // Сохраняем пользователя и токен
+        currentUser = {
+        id: data.user.id,
+        name: data.user.fullName,
+        token: data.token
+        };
+        localStorage.setItem('tatarUser', JSON.stringify(currentUser));
+        
+        updateAuthUI();
+        closeAuthModal();
+        showToast(`👋 Добро пожаловать, ${currentUser.name}!`, 'success');
+    } catch (err) {
+        document.getElementById('auth-message').textContent = err.message;
+    }
+    }
+
+    // Обновление интерфейса после входа/выхода
+    function updateAuthUI() {
+    const btn = document.getElementById('auth-btn');
+    const info = document.getElementById('user-info');
+    
+    if (currentUser) {
+        btn.textContent = 'Выйти';
+        btn.onclick = logout;
+        info.textContent = `👤 ${currentUser.name}`;
+    } else {
+        btn.textContent = '🔑 Войти';
+        btn.onclick = openAuthModal;
+        info.textContent = '';
+    }
+    }
+
+    function logout() {
+    currentUser = null;
+    localStorage.removeItem('tatarUser');
+    updateAuthUI();
+    showToast('👋 Вы вышли из системы', 'info');
+    }
+
+    async function loadDishes() {
+      const grid = document.getElementById('dishesGrid');
+      grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: var(--text-secondary);">Загрузка меню...</div>';
+      
+      try {
+        const res = await fetch(`${API.catalog}/dishes`);
+        if (!res.ok) throw new Error('Не удалось загрузить каталог');
+        const dishes = await res.json();
+        
+        if (dishes.length === 0) {
+          // Моковые данные для демо
+          grid.innerHTML = renderDishes(getMockDishes());
+          showToast('ℹ️ Показываем демо-меню', 'info');
+          return;
+        }
+        grid.innerHTML = renderDishes(dishes);
+      } catch (err) {
+        grid.innerHTML = `<div style="grid-column: 1/-1; text-align: center; color: var(--error);">
+          ⚠️ Не удалось загрузить каталог.<br><small>Убедитесь, что Catalog Service запущен</small>
+        </div>`;
+        // Показываем моковые данные как фоллбэк
+        setTimeout(() => {
+          document.getElementById('dishesGrid').innerHTML = renderDishes(getMockDishes());
+          showToast('ℹ️ Показываем демо-меню', 'info');
+        }, 2000);
+      }
+    }
+
+    function renderDishes(dishes) {
+    if (!dishes || dishes.length === 0) {
+        return '<div style="grid-column: 1/-1; text-align: center; color: #b0b0c0;">Меню пусто</div>';
+    }
+    
+    return dishes.map(function(dish) {
+        // Используем imageUrl из API или заглушку
+        var imageUrl = dish.imageUrl || 'https://via.placeholder.com/400x300?text=Tatar+Food';
+        
+        return '<div class="dish-card">' +
+        '<div class="dish-image" style="background-image: url(\'' + imageUrl + '\'); background-size: cover; background-position: center;"></div>' +
+        '<div class="dish-info">' +
+            '<div class="dish-name">' + (dish.name || dish.Name || 'Блюдо') + '</div>' +
+            '<div class="dish-desc">' + (dish.description || dish.Description || 'Описание') + '</div>' +
+            '<div class="dish-footer">' +
+            '<div class="dish-price">' + (dish.price || dish.Price || 0) + ' ₽</div>' +
+            '<button class="add-btn" onclick="addToCart(' + (dish.id || dish.Id) + ', \'' + (dish.name || dish.Name || 'Блюдо') + '\', ' + (dish.price || dish.Price || 0) + ')">В корзину</button>' +
+            '</div>' +
+        '</div>' +
+        '</div>';
+    }).join('');
+    }
+
+    function getMockDishes() {
+      return [
+        { id: 1, name: 'Эчпочмак', description: 'Традиционный треугольный пирожок с мясом и картофелем', price: 350 },
+        { id: 2, name: 'Кыстыбый', description: 'Лепёшка с картофельным пюре и обжаренным луком', price: 420 },
+        { id: 3, name: 'Азу по-татарски', description: 'Тушёная говядина с солёными огурцами и картофелем', price: 280 },
+        { id: 4, name: 'Бишбармак', description: 'Нарезанное мясо с лапшой и бульоном', price: 500 },
+        { id: 5, name: 'Чак-чак', description: 'Сладкое блюдо из теста с мёдом', price: 250 }
+      ];
+    }
+
+    // 🛒 Логика корзины
+    function addToCart(id, name, price) {
+      const existing = cart.find(item => item.id === id);
+      if (existing) {
+        existing.quantity++;
+      } else {
+        cart.push({ id, name, price, quantity: 1 });
+      }
+      updateCartUI();
+      showToast(`✅ ${name} добавлен в корзину`, 'success');
+    }
+
+    function updateCartUI() {
+    // Обновляем счётчик
+    document.getElementById('cartCount').textContent = cart.reduce((sum, item) => sum + item.quantity, 0);
+    
+    // Обновляем модальное окно
+    const cartItems = document.getElementById('cartItems');
+    const cartTotal = document.getElementById('cartTotal');
+    const checkoutBtn = document.getElementById('checkoutBtn');
+    
+    if (cart.length === 0) {
+        cartItems.innerHTML = '<div style="color: var(--text-secondary); text-align: center;">Корзина пуста</div>';
+        cartTotal.textContent = '0 ₽';
+        checkoutBtn.disabled = true;
+        checkoutBtn.title = 'Добавьте блюда в корзину';
+        checkoutBtn.innerHTML = 'Корзина пуста';
+        return;
+    }
+    
+    cartItems.innerHTML = cart.map(item => `
+        <div class="cart-item">
+        <div class="cart-item-info">
+            <div class="cart-item-name">${item.name}</div>
+            <div class="cart-item-price">${item.price} ₽ × ${item.quantity}</div>
+        </div>
+        <div class="cart-item-qty">
+            <button class="qty-btn" onclick="changeQty(${item.id}, -1)">−</button>
+            <span>${item.quantity}</span>
+            <button class="qty-btn" onclick="changeQty(${item.id}, 1)">+</button>
+        </div>
+        </div>
+    `).join('');
+    
+    const total = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+    cartTotal.textContent = `${total} ₽`;
+    
+    // ✅ ПРОВЕРКА: можно ли оформить заказ
+    const canCheckout = deliveryInfo?.isDeliverable === true;
+    
+    if (!canCheckout) {
+        checkoutBtn.disabled = true;
+        checkoutBtn.title = 'Сначала проверьте зону доставки';
+        checkoutBtn.innerHTML = '📍 Проверьте доставку';
+    } else {
+        checkoutBtn.disabled = false;
+        checkoutBtn.title = '';
+        checkoutBtn.innerHTML = 'Оформить заказ';
+    }
+    }
+
+    function changeQty(id, delta) {
+      const item = cart.find(i => i.id === id);
+      if (!item) return;
+      item.quantity += delta;
+      if (item.quantity <= 0) {
+        cart = cart.filter(i => i.id !== id);
+      }
+      updateCartUI();
+    }
+
+    function openCart() {
+      document.getElementById('cartModal').classList.add('active');
+      updateCartUI();
+    }
+
+    function closeCart() {
+      document.getElementById('cartModal').classList.remove('active');
+    }
+
+    // 📍 Проверка доставки
+    async function checkDelivery() {
+      const lat = parseFloat(document.getElementById('lat').value);
+      const lon = parseFloat(document.getElementById('lon').value);
+      const resultDiv = document.getElementById('deliveryResult');
+      // Показываем маркер на карте
+        if (map) {
+        // Удаляем старый маркер пользователя
+        if (window.userMarker) {
+            map.removeLayer(window.userMarker);
+        }
+        
+        // Добавляем новый маркер
+        window.userMarker = L.marker([lat, lon])
+            .addTo(map)
+            .bindPopup('<b>Ваш адрес</b><br>Проверка доставки...')
+            .openPopup();
+        
+        map.setView([lat, lon], 14);
+        }
+      resultDiv.className = 'delivery-result';
+      resultDiv.textContent = '🔄 Проверяем...';
+      
+      try {
+        const res = await fetch(`${API.delivery}/delivery/validate-address`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ lat, lon })
+        });
+        
+        if (!res.ok) throw new Error('Сервис доставки недоступен');
+        deliveryInfo = await res.json();
+        
+        if (deliveryInfo.isDeliverable) {
+            if (window.userMarker) {
+                window.userMarker.setPopupContent(`
+                    <b>✅ Доставка доступна!</b><br>
+                    Ресторан #${deliveryInfo.restaurantId}<br>
+                    ~${deliveryInfo.estimatedMinutes} мин
+                `);
+                }
+          resultDiv.className = 'delivery-result success';
+          resultDiv.innerHTML = `
+            ✅ Доставка доступна!<br>
+            📍 ${deliveryInfo.address}<br>
+            🏪 Ресторан #${deliveryInfo.restaurantId}<br>
+            ⏱️ ~${deliveryInfo.estimatedMinutes} мин
+          `;
+          showToast('🚚 Доставка доступна!', 'success');
+        } else {
+          resultDiv.className = 'delivery-result error';
+          resultDiv.innerHTML = `❌ К сожалению, доставка по этому адресу недоступна`;
+          showToast('⚠️ Адрес вне зоны доставки', 'error');
+        }
+        updateCartUI(); // Обновить кнопку оформления
+      } catch (err) {
+        resultDiv.className = 'delivery-result error';
+        resultDiv.textContent = `⚠️ Ошибка: ${err.message}`;
+        showToast('⚠️ Не удалось проверить доставку', 'error');
+      }
+    }
+
+    // 🛒 Оформление заказа
+    async function checkout() {
+    if (!currentUser) {
+        showToast('⚠️ Сначала войдите в аккаунт', 'error');
+        openAuthModal();
+        return;
+    }
+    if (cart.length === 0) {
+        showToast('⚠️ Корзина пуста', 'error');
+        return;
+    }
+    if (!deliveryInfo?.isDeliverable) {
+        showToast('⚠️ Сначала проверьте зону доставки', 'error');
+        return;
+    }
+
+    const btn = document.getElementById('checkoutBtn');
+    const originalText = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Оформление...';
+
+    try {
+        const orderData = {
+        userId: currentUser.id,
+        addressId: 1,
+        items: cart.map(item => ({
+            dishId: item.id,
+            quantity: item.quantity
+        }))
+        };
+
+        console.log('📤 Отправляем заказ:', orderData);
+
+        const createRes = await fetch(`${API.order}/orders`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(orderData)
+        });
+
+        const responseData = await createRes.json().catch(() => ({}));
+        
+        if (!createRes.ok) {
+        const errorMsg = responseData.errors 
+            ? Object.values(responseData.errors).flat().join(', ') 
+            : responseData.title || responseData.message || 'Неизвестная ошибка';
+        throw new Error(`[${createRes.status}] ${errorMsg}`);
+        }
+
+        const order = responseData;
+        const orderId = order.id;
+        
+        // ✅ Надёжная проверка: 
+        // 1. Если есть PaymentId (оплата прошла)
+        // 2. ИЛИ если статус = 1 (Paid в enum) или строка "Paid"/"paid"
+        const paymentId = order.paymentId || order.PaymentId;
+        const status = order.status ?? order.Status; // поддержка camelCase и PascalCase
+        const isPaid = paymentId || 
+                    status === 2 ||  // enum значение Paid
+                    String(status).toLowerCase() === 'paid' ||
+                    String(status).toLowerCase().includes('paid');
+
+        if (isPaid) {
+        showToast(`✅ Заказ #${orderId} оформлен и оплачен!`, 'success');
+        cart = [];
+        updateCartUI();
+        closeCart();
+
+        setTimeout(() => {
+            alert(`🎉 Спасибо за заказ!\n\nНомер: ${orderId}\nСумма: ${order.totalPrice || order.TotalPrice} ₽\nСтатус: Оплачен`);
+        }, 500);
+        } else {
+        showToast(`⚠️ Заказ #${orderId} создан, но оплата не прошла. Статус: ${status}`, 'error');
+        }
+        
+    } catch (err) {  // ✅ ЗАКРЫВАЕМ try И ОТКРЫВАЕМ catch
+        showToast(`❌ ${err.message}`, 'error');
+        console.error('🔴 Checkout error:', err);
+    } finally {  // ✅ finally для разблокировки кнопки
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+    }
+    }  // ✅ ЗАКРЫВАЕМ функцию checkout()
+
+    // 🔔 Уведомления
+    function showToast(message, type = 'info') {
+      const toast = document.createElement('div');
+      toast.className = 'toast';
+      toast.innerHTML = `
+        <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i>
+        ${message}
+      `;
+      document.body.appendChild(toast);
+      setTimeout(() => toast.remove(), 3000);
+    }
+
+    // Закрытие модального окна по клику вне контента
+    document.getElementById('cartModal').addEventListener('click', (e) => {
+      if (e.target.id === 'cartModal') closeCart();
+    });
+  </script>
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+      integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+      crossorigin=""></script>
+</body>
+</html>

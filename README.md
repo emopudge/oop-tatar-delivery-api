@@ -109,3 +109,173 @@ Swagger будет доступен:
 `Catalog Service` использует PostgreSQL из `docker-compose.yml`.
 
 `Order Service` использует локальный SQLite-файл и mock-цены блюд.
+
+----------------------------------------------------------------
+
+Вот очищенная версия:
+
+---
+
+# 🥟Frontend: Инструкция по запуску
+
+## Предварительные требования
+
+- Docker Desktop (для PostgreSQL)
+- .NET 8 SDK
+- Visual Studio Code (с расширениями C#, C# Dev Kit)
+- Git
+
+## Пошаговый запуск
+
+### Шаг 1: Запусти Docker Desktop
+Открой Docker Desktop и дождись статуса "Running". PostgreSQL будет запущен автоматически при старте CatalogService.
+
+### Шаг 2: Открой проект в VS Code
+```powershell
+cd C:\Users\ТвоёИмя\oop-tatar-delivery-api
+code .
+```
+
+### Шаг 3: Открой 4 вкладки терминала
+Нажми `Ctrl+Shift+`` ` `` 4 раза. В каждой вкладке выполни соответствующую команду:
+
+| Вкладка | Команда | Что запускает |
+|---------|---------|--------------|
+| Catalog | `dotnet run --project TatarDelivery.CatalogService` | Каталог блюд + PostgreSQL в Docker |
+| Order | `dotnet run --project TatarDelivery.OrderService` | Заказы + оплата (SQLite) |
+| User | `dotnet run --project TatarDelivery.UserService` | Регистрация, вход, профили (SQLite) |
+| Delivery | `dotnet run --project TatarDelivery.DeliveryService` | Проверка зоны доставки (в памяти) |
+
+Если порт занят, измени его в `launchSettings.json` соответствующего сервиса.
+
+<img width="1259" height="888" alt="image" src="https://github.com/user-attachments/assets/8377f268-bc3a-4baf-88d4-c4d4e20788dc" />
+
+
+### Шаг 4: Настрой базу данных для CatalogService (только первый раз)
+
+Подключение к PostgreSQL в Docker (опционально, для отладки):
+```powershell
+docker exec -it tatar-delivery-catalog-db psql -U postgres -d tatar_delivery_catalog
+
+# Посмотреть блюда:
+SELECT "Name", "Price", "ImageUrl" FROM "Dishes";
+
+# Выйти:
+\q
+```
+
+Seed-код в `TatarDelivery.CatalogService/Program.cs` выполнится автоматически при первом запуске, если таблица `Dishes` пуста.
+
+Если менял модель `Dish.cs`:
+```powershell
+cd TatarDelivery.CatalogService
+dotnet ef migrations add НазваниеИзменения
+dotnet ef database update
+```
+
+### Шаг 5: Запусти фронтенд
+
+**Способ А: Простой**
+1. В проводнике перейди в папку `frontend/`
+2. Дважды кликни по `index.html`
+3. Страница откроется по адресу `file:///...`
+
+**Способ Б: Live Server**
+1. Установи расширение Live Server в VS Code
+2. Кликни правой кнопкой по `frontend/index.html` → Open with Live Server
+3. Страница откроется на `http://127.0.0.1:5500` с авто-обновлением
+
+### Шаг 6: Проверь работоспособность
+
+- Каталог блюд: открой `http://localhost:5078/swagger` → `GET /dishes` (должен вернуть JSON со списком блюд)
+- Авторизация: на сайте нажми «Войти» → зарегистрируйся (в шапке появится имя пользователя)
+- Карта: прокрути вниз (маркеры ресторанов и зоны доставки)
+- Корзина: добавь блюдо → открой корзину (счётчик обновился, сумма посчитана)
+- Доставка: введи `55.796`, `49.108` → «Проверить доставку» (должно быть "Доставка доступна")
+- Оплата: нажми «Оформить заказ» (должен создаться заказ с номером)
+<img width="1525" height="442" alt="image" src="https://github.com/user-attachments/assets/9984218e-1404-4a96-9441-d3c17e88e42f" />
+<img width="1217" height="859" alt="image" src="https://github.com/user-attachments/assets/a4558664-abc8-417d-8e97-8ce5a988b5ac" />
+<img width="1201" height="768" alt="image" src="https://github.com/user-attachments/assets/347dfd84-c4c2-488c-bccf-8041b3deee62" />
+
+## Частые проблемы и решения
+
+**CatalogService не подключается к базе**
+```
+Npgsql.PostgresException: 28P01: password authentication failed
+```
+Решение:
+1. Убедись, что Docker Desktop запущен
+2. Проверь строку подключения в `appsettings.Development.json`:
+   ```json
+   "DefaultConnection": "Host=localhost;Port=5434;Database=tatar_delivery_catalog;Username=postgres;Password=123"
+   ```
+3. Перезапусти контейнер:
+   ```powershell
+   docker compose down catalog-db
+   docker compose up -d catalog-db
+   ```
+
+**Заказ не создаётся: 500 error**
+```
+SQLite Error 1: 'table Orders has no column named PaymentId'
+```
+Решение: устарела база OrderService.
+```powershell
+Remove-Item .\TatarDelivery.OrderService\*.db -Force
+dotnet run --project TatarDelivery.OrderService
+```
+
+**Картинки блюд не грузятся**
+
+| Причина | Как проверить | Решение |
+|---------|--------------|---------|
+| Хотлинкинг заблокирован | Открой ссылку из `ImageUrl` в новой вкладке | Используй Unsplash или загрузи картинки на свой сервер |
+| Ошибка в JS | F12 → Console | Проверь `renderDishes()`: должно быть `dish.imageUrl`, а не `dish.image` |
+| CORS | F12 → Network | В `Program.cs` каждого сервиса добавь `AllowAnyOrigin()` |
+
+**Кнопка "Оформить заказ" неактивна**
+Проверь:
+- Авторизован ли пользователь
+- Есть ли товары в корзине
+- Проверена ли зона доставки
+
+## Тестовый сценарий для демонстрации
+
+1. Запусти все 4 сервиса и фронтенд
+2. Зарегистрируйся: test@tatar.dev / Test123!
+3. Добавь в корзину: Эчпочмак и Чак-чак
+4. Проверь доставку: 55.796, 49.108 (центр Казани)
+5. Нажми "Оформить заказ"
+6. Увидь: "Заказ #1 оформлен и оплачен!"
+7. Покажи карту с маркерами ресторанов
+
+## Структура фронтенда
+
+```
+frontend/
+├── index.html          # Единственный HTML-файл
+├── css/
+│   └── styles.css      # Стили (опционально)
+└── js/
+    └── app.js          # Логика (опционально)
+```
+
+Для учебного проекта один файл удобен: не нужно настраивать сборку. В продакшене рекомендуется разбивать на модули.
+
+## Обновление проекта
+
+```powershell
+# 1. Останови сервисы (Ctrl+C в каждой вкладке)
+# 2. Забери изменения:
+git pull origin main
+# 3. Пересобери:
+dotnet restore
+# 4. Запусти заново (шаги 3-5)
+```
+
+## Нужна помощь?
+
+1. Смотри логи в терминале каждого сервиса
+2. Проверяй API через Swagger (`/swagger`)
+3. Консоль браузера: F12 → Console
+4. Прикрепи скриншот ошибки и шаги, которые привели к ней

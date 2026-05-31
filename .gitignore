@@ -32,3 +32,20 @@ Thumbs.db
 *.db-wal
 *.user
 *.suo
+# Локальные переопределения Docker (если меняешь порты/пароли под себя)
+docker-compose.override.yml
+
+# Конфиги с паролями и строками подключения (чтобы не утек `Password=123`)
+**/appsettings.Development.json
+**/appsettings.*.json
+
+# Логи, результаты тестов и покрытия
+*.log
+TestResults/
+coverage/
+
+# Сертификаты и ключи (на будущее)
+*.pem
+*.key
+*.pfx
+*.crt

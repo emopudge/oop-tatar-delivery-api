@@ -11,6 +11,7 @@ public class Program
     public static void Main(string[] args)
     {
         var builder = WebApplication.CreateBuilder(args);
+
         builder.Services.AddControllers();
         builder.Services.AddHttpClient();
 
@@ -19,6 +20,7 @@ public class Program
 
         builder.Services.AddEndpointsApiExplorer();
         builder.Services.AddScoped<IOrderService, Services.OrderService>();
+
         builder.Services.AddSingleton<IPaymentClient, MockTinkoffPaymentClient>();
 
         builder.Services.AddSwaggerGen(options =>
@@ -33,6 +35,11 @@ public class Program
         builder.Services.AddHttpClient("TinkoffMock");
 
         var app = builder.Build();
+        
+        app.UseCors(policy => policy
+            .AllowAnyOrigin()
+            .AllowAnyMethod()
+            .AllowAnyHeader());
 
         using (var scope = app.Services.CreateScope())
         {

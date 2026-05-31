@@ -15,6 +15,7 @@ public static class CatalogMappings
             d.Name,
             d.Description,
             d.Price,
+            d.ImageUrl,
             d.IsAvailable,
             d.CategoryId);
 }
