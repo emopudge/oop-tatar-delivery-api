@@ -31,19 +31,9 @@ public static class OrderMappings
         );
     }
 
-    public static OrderItemResponse MapToOrderResponse(this OrderItem orderItem)
+    public static OrderResponse MapToOrderResponse(this Order order)
     {
-        if (orderItem is null)
-        {
-            throw new ArgumentNullException(nameof(orderItem));
-        }
-
-        return new OrderItemResponse(
-            Id: orderItem.Id,
-            DishId: orderItem.DishId,
-            Quantity: orderItem.Quantity,
-            Price: orderItem.Price
-        );
+        return order.ToResponse();
     }
 
     public static OrderStatusHistoryResponse MapToOrderStatusHistoryResponse(this OrderStatusHistory statusHistory)

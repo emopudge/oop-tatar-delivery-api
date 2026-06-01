@@ -62,7 +62,7 @@ public sealed class OrdersController : ControllerBase
         });
 
         var createdOrder = await _orderService.CreateOrderAsync(order);
-        var orderResponse = OrderMappings.MapToOrderResponse;
+        var orderResponse = OrderMappings.MapToOrderResponse(order);
         return StatusCode(StatusCodes.Status201Created);
 
     }
@@ -78,7 +78,7 @@ public sealed class OrdersController : ControllerBase
             return NotFound();
         }
 
-        var orderResponse = OrderMappings.MapToOrderResponse;
+        var orderResponse = OrderMappings.MapToOrderResponse(order);
         return Ok(orderResponse);
     }
 
@@ -106,7 +106,7 @@ public sealed class OrdersController : ControllerBase
         return NotFound(new ErrorResponse("Заказ не найден после попытки отмены."));
     }
 
-    var orderResponse = OrderMappings.MapToOrderResponse;
+    var orderResponse = OrderMappings.MapToOrderResponse(updatedOrder);
     return Ok(orderResponse);
     }
 
