@@ -28,7 +28,7 @@ public class MockTinkoffPaymentClient : IPaymentClient
         
         _useRealHttp = configuration.GetValue<bool>("Tinkoff:UseRealHttp", false);
         
-        if (_useRealHttp && _httpClient != null)
+        if (_useRealHttp)
         {
             var baseUrl = configuration["Tinkoff:MockBaseUrl"] ?? "http://localhost:5001/api/tinkoff/mock";
             _httpClient.BaseAddress = new Uri(baseUrl);

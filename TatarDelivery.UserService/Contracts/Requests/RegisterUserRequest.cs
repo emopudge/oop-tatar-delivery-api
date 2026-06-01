@@ -18,6 +18,6 @@ public sealed class RegisterUserRequest
     public string FullName { get; init; } = string.Empty;
 
     [Required]
-    [RegularExpression(@"^\+?[0-9]{10,15}$", ErrorMessage = "Phone must contain 10 to 15 digits and may start with +.")]
+    [RegularExpression(@"^\+?[0-9]{10,15}$", ErrorMessage = "Телефон должен быть из 10-15 цифр и начинаться с +.")]
     public string Phone { get; init; } = string.Empty;
 }

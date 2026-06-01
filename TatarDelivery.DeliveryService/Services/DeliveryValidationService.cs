@@ -6,7 +6,6 @@ public class DeliveryValidationService
 {
     private readonly IGeocodingService _geo;
     
-    // Моковая база ресторанов (ID, Широта, Долгота, Радиус км)
     private static readonly (int Id, double Lat, double Lon, double Radius)[] _restaurants = 
     [ 
         (1, 55.790, 49.110, 5.0), 
@@ -40,7 +39,6 @@ public class DeliveryValidationService
         double dLat = (lat2 - lat1) * Math.PI / 180;
         double dLon = (lon2 - lon1) * Math.PI / 180;
         
-        // ✅ ИСПРАВЛЕНО: вместо **2 используем умножение
         double a = Math.Sin(dLat / 2) * Math.Sin(dLat / 2) + 
                    Math.Cos(lat1 * Math.PI / 180) * Math.Cos(lat2 * Math.PI / 180) * 
                    Math.Sin(dLon / 2) * Math.Sin(dLon / 2);

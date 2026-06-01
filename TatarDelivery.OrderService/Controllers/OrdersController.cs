@@ -63,7 +63,7 @@ public sealed class OrdersController : ControllerBase
 
         var createdOrder = await _orderService.CreateOrderAsync(order);
         var orderResponse = OrderMappings.MapToOrderResponse(order);
-        return StatusCode(StatusCodes.Status201Created);
+        return StatusCode(StatusCodes.Status201Created, orderResponse);
 
     }
 
@@ -90,24 +90,24 @@ public sealed class OrdersController : ControllerBase
     {
         var success = await _orderService.TryCancelOrderAsync(id);
 
-    if (!success)
-    {
-        var existingOrder = await _orderService.FindOrderByIdAsync(id);
-        if (existingOrder is null)
+        if (!success)
         {
-            return NotFound(new ErrorResponse("Заказ не найден."));
+            var existingOrder = await _orderService.FindOrderByIdAsync(id);
+            if (existingOrder is null)
+            {
+                return NotFound(new ErrorResponse("Заказ не найден."));
+            }
+            return BadRequest(new ErrorResponse("Заказ не может быть отменён в нынешнем статусе."));
         }
-        return BadRequest(new ErrorResponse("Заказ не может быть отменён в нынешнем статусе."));
-    }
 
-    var updatedOrder = await _orderService.FindOrderByIdAsync(id);
-    if (updatedOrder is null)
-    {
-        return NotFound(new ErrorResponse("Заказ не найден после попытки отмены."));
-    }
+        var updatedOrder = await _orderService.FindOrderByIdAsync(id);
+        if (updatedOrder is null)
+        {
+            return NotFound(new ErrorResponse("Заказ не найден после попытки отмены."));
+        }
 
-    var orderResponse = OrderMappings.MapToOrderResponse(updatedOrder);
-    return Ok(orderResponse);
+        var orderResponse = updatedOrder.ToResponse();
+        return Ok(orderResponse);
     }
 
     [HttpPost("{id:int}/deliver")]
@@ -134,7 +134,7 @@ public sealed class OrdersController : ControllerBase
         return NotFound(new ErrorResponse("Заказ не найден после попытки смены статуса доставки."));
     }
 
-    var orderResponse = OrderMappings.MapToOrderResponse;
+    var orderResponse = OrderMappings.MapToOrderResponse(updatedOrder);
     return Ok(orderResponse);
     }
 

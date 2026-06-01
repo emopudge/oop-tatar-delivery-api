@@ -8,7 +8,7 @@ public class YandexGeocodingService : IGeocodingService
 
     public async Task<string?> GetAddressAsync(double lat, double lon)
     {
-        await Task.Delay(10); // Mock
+        await Task.Delay(10);  // Mock
         return $"Казань, ул. Тестовая, {Math.Abs((int)lon)}";
     }
 }

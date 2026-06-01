@@ -77,7 +77,7 @@ public class Program
                             .Select(error => string.IsNullOrWhiteSpace(error.ErrorMessage) ? "Invalid value." : error.ErrorMessage)
                             .ToArray());
 
-                return new BadRequestObjectResult(new ErrorResponse("Validation failed.", errors));
+                return new BadRequestObjectResult(new ErrorResponse("Валидация не прошла.", errors));
             };
         });
 
@@ -88,7 +88,6 @@ public class Program
             var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
             dbContext.Database.EnsureCreated();
         }
-        // 🔓 Разрешаем CORS для разработки (все источники, все методы)
         app.UseCors(policy => policy
             .AllowAnyOrigin()
             .AllowAnyMethod()

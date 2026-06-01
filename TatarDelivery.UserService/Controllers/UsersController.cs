@@ -38,7 +38,7 @@ public sealed class UsersController : ControllerBase
         var emailExists = await _dbContext.Users.AnyAsync(user => user.Email == email);
         if (emailExists)
         {
-            return Conflict(new ErrorResponse("A user with this email already exists."));
+            return Conflict(new ErrorResponse("Пользователь с этим email уже существует."));
         }
 
         _passwordHasher.HashPassword(request.Password, out var passwordHash, out var passwordSalt);
@@ -72,7 +72,7 @@ public sealed class UsersController : ControllerBase
 
         if (user is null || !_passwordHasher.VerifyPassword(request.Password, user.PasswordHash, user.PasswordSalt))
         {
-            return Unauthorized(new ErrorResponse("Invalid email or password."));
+            return Unauthorized(new ErrorResponse("Неверный email или пароль."));
         }
 
         user.AuthToken = Guid.NewGuid().ToString("N");
@@ -91,7 +91,7 @@ public sealed class UsersController : ControllerBase
         var user = await GetCurrentUserAsync();
         if (user is null)
         {
-            return Unauthorized(new ErrorResponse("User is not authenticated."));
+            return Unauthorized(new ErrorResponse("Пользователь не аутентифицирован."));
         }
 
         return Ok(user.ToResponse());
@@ -107,7 +107,7 @@ public sealed class UsersController : ControllerBase
         var user = await GetCurrentUserAsync();
         if (user is null)
         {
-            return Unauthorized(new ErrorResponse("User is not authenticated."));
+            return Unauthorized(new ErrorResponse("Пользователь не аутентифицирован."));
         }
 
         user.FullName = request.FullName.Trim();
@@ -128,7 +128,7 @@ public sealed class UsersController : ControllerBase
         var userId = GetCurrentUserId();
         if (userId is null)
         {
-            return Unauthorized(new ErrorResponse("User is not authenticated."));
+            return Unauthorized(new ErrorResponse("Пользователь не аутентифицирован."));
         }
 
         var addresses = await _dbContext.Addresses
@@ -152,7 +152,7 @@ public sealed class UsersController : ControllerBase
         var user = await GetCurrentUserAsync();
         if (user is null)
         {
-            return Unauthorized(new ErrorResponse("User is not authenticated."));
+            return Unauthorized(new ErrorResponse("Пользователь не аутентифицирован."));
         }
 
         var shouldBeDefault = request.IsDefault || !await _dbContext.Addresses.AnyAsync(address => address.UserId == user.Id);

@@ -52,7 +52,7 @@ public class DishesController : ControllerBase
         var dish = await _catalogService.FindDishByIdAsync(id);
         if (dish == null)
         {
-            return NotFound(new ErrorResponse("Dish not found", "NOT_FOUND"));
+            return NotFound(new ErrorResponse("Блюдо не найдено", "NOT_FOUND"));
         }
         
         var response = CatalogMappings.ToDishResponse.Compile()(dish);

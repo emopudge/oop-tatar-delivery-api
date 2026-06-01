@@ -5,11 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>🍲 Tatar Delivery</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <!-- Leaflet CSS -->
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
       integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
       crossorigin=""/>  
-  <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Ruslan+Display&display=swap" rel="stylesheet">  <style>
@@ -38,7 +36,6 @@
       position: relative;
     }
 
-    /* 🌀 Анимированный фон */
     .bg-animation {
       position: fixed;
       top: 0; left: 0; width: 100%; height: 100%;
@@ -64,7 +61,6 @@
       z-index: -1;
     }
 
-    /* 📐 Контейнер */
     .container {
       max-width: 1200px;
       margin: 0 auto;
@@ -73,7 +69,6 @@
       z-index: 1;
     }
 
-    /* 🏷️ Хедер */
     header {
       display: flex;
       justify-content: space-between;
@@ -126,7 +121,6 @@
       font-weight: 700;
     }
 
-    /* 🍽️ Сетка блюд */
     .dishes-grid {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
@@ -206,7 +200,6 @@
       color: #000;
     }
 
-    /* 🛒 Модальное окно корзины */
     .modal {
       display: none;
       position: fixed;
@@ -337,7 +330,6 @@
       transform: none;
     }
 
-    /* 📍 Блок доставки */
     .delivery-section {
       background: var(--bg-secondary);
       border-radius: 16px;
@@ -400,7 +392,6 @@
     }
 
 
-    /* 🗺️ Карта */
     .map-section {
     margin-bottom: 3rem;
     }
@@ -458,7 +449,6 @@
       display: block;
     }
 
-    /* 🔔 Тост-уведомления */
     .toast {
       position: fixed;
       bottom: 2rem;
@@ -485,7 +475,6 @@
       to { opacity: 0; transform: translateX(100%); }
     }
 
-    /* 📱 Адаптив */
     @media (max-width: 768px) {
       .dishes-grid { grid-template-columns: 1fr; }
       .coords-inputs { grid-template-columns: 1fr; }
@@ -510,7 +499,6 @@
     </div>
     </header>
 
-    <!-- 📍 Проверка доставки -->
     <div class="delivery-section">
       <div class="delivery-title">📍 Проверить зону доставки</div>
       <div class="coords-inputs">
@@ -523,7 +511,6 @@
       <div id="deliveryResult" class="delivery-result"></div>
     </div>
 
-    <!-- 🗺️ Интерактивная карта -->
     <div class="map-section">
     <h2 style="color: var(--accent); margin-bottom: 1rem;">📍 Рестораны и зоны доставки</h2>
     <div id="map" style="height: 500px; border-radius: 16px; box-shadow: var(--card-shadow);"></div>
@@ -535,14 +522,12 @@
     </div>
     </div>
 
-    <!-- 🍽️ Каталог блюд -->
     <h2 style="margin-bottom: 1.5rem; color: var(--accent);">🥘 Меню</h2>
     <div class="dishes-grid" id="dishesGrid">
       <!-- Блюда загрузятся сюда -->
     </div>
   </div>
 
-  <!-- 🛒 Модальное окно корзины -->
   <div class="modal" id="cartModal">
     <div class="modal-content">
       <div class="modal-header">
@@ -562,7 +547,6 @@
     </div>
   </div>
 
-  <!-- 🔐 Модальное окно авторизации -->
     <div class="modal" id="authModal">
     <div class="modal-content" style="max-width: 400px;">
         <div class="modal-header">
@@ -570,20 +554,17 @@
         <button class="close-btn" onclick="closeAuthModal()">&times;</button>
         </div>
         
-        <!-- Табы -->
         <div style="display: flex; margin-bottom: 1.5rem; border-bottom: 1px solid var(--accent);">
         <button id="tab-login" class="add-btn" style="border-radius: 8px 8px 0 0; border-bottom: none;" onclick="switchAuthTab('login')">Вход</button>
         <button id="tab-register" class="add-btn" style="border-radius: 8px 8px 0 0; border-bottom: none; opacity: 0.5;" onclick="switchAuthTab('register')">Регистрация</button>
         </div>
 
-        <!-- Форма Входа -->
         <div id="form-login">
         <input type="email" id="login-email" placeholder="Email" style="width: 100%; margin-bottom: 1rem;">
         <input type="password" id="login-password" placeholder="Пароль" style="width: 100%; margin-bottom: 1rem;">
         <button class="checkout-btn" onclick="login()">Войти</button>
         </div>
 
-        <!-- Форма Регистрации -->
         <div id="form-register" style="display: none;">
         <input type="text" id="reg-name" placeholder="Имя" style="width: 100%; margin-bottom: 1rem;">
         <input type="email" id="reg-email" placeholder="Email" style="width: 100%; margin-bottom: 1rem;">
@@ -597,7 +578,6 @@
     </div>
 
   <script>
-    // 🔧 КОНФИГУРАЦИЯ
     const API = {
       catalog: 'http://localhost:5078',
       order: 'http://localhost:5007',
@@ -605,14 +585,12 @@
       user: 'http://localhost:5100'
     };
 
-    // 🗺️ Данные о ресторанах (координаты и радиус доставки)
     const restaurants = [
     { id: 1, name: "Эчпочмак House", lat: 55.790, lon: 49.110, radius: 5.0, address: "ул. Баумана, 15" },
     { id: 2, name: "Кыстыбый Bar", lat: 55.785, lon: 49.120, radius: 3.0, address: "ул. Петербургская, 42" },
     { id: 3, name: "Татарская усадьба", lat: 55.800, lon: 49.100, radius: 7.0, address: "пр. Победы, 100" }
     ];
 
-    // Инициализация карты
     let map;
     let markers = [];
     let circles = [];
@@ -621,23 +599,19 @@
     // Центр карты (Казань)
     map = L.map('map').setView([55.796, 49.108], 13);
     
-    // Добавляем слой OpenStreetMap
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '© OpenStreetMap contributors',
         maxZoom: 19
     }).addTo(map);
     
-    // Добавляем маркеры и зоны доставки
     restaurants.forEach(restaurant => {
         addRestaurantToMap(restaurant);
     });
     
-    // Показываем список ресторанов
     renderRestaurantsList();
     }
 
     function addRestaurantToMap(restaurant) {
-    // Добавляем маркер
     const marker = L.marker([restaurant.lat, restaurant.lon])
         .addTo(map)
         .bindPopup(`
@@ -649,7 +623,6 @@
         `);
     markers.push(marker);
     
-    // Добавляем круг зоны доставки
     const circle = L.circle([restaurant.lat, restaurant.lon], {
         color: '#ffd700',
         fillColor: '#ffd700',
@@ -676,7 +649,6 @@
     const restaurant = restaurants.find(r => r.id === id);
     if (restaurant) {
         map.setView([restaurant.lat, restaurant.lon], 15);
-        // Открываем попап
         const markerIndex = restaurants.findIndex(r => r.id === id);
         if (markers[markerIndex]) {
         markers[markerIndex].openPopup();
@@ -684,23 +656,18 @@
     }
     }
 
-    // Инициализируем карту при загрузке страницы
     document.addEventListener('DOMContentLoaded', () => {
     loadDishes();
     initMap();
     });
 
-    // 🛒 Состояние корзины
     let cart = [];
     let deliveryInfo = null;
 
-    // 🍽️ Загрузка блюд при старте
     document.addEventListener('DOMContentLoaded', loadDishes);
 
-    // 🔐 Глобальная переменная для текущего пользователя
     let currentUser = null;
 
-    // Загрузка данных при старте
     document.addEventListener('DOMContentLoaded', () => {
     const savedUser = localStorage.getItem('tatarUser');
     if (savedUser) {
@@ -711,7 +678,6 @@
     initMap();
     });
 
-    // Переключение табов Вход/Регистрация
     function switchAuthTab(tab) {
     document.getElementById('form-login').style.display = tab === 'login' ? 'block' : 'none';
     document.getElementById('form-register').style.display = tab === 'register' ? 'block' : 'none';
@@ -724,7 +690,6 @@
     function openAuthModal() { document.getElementById('authModal').classList.add('active'); }
     function closeAuthModal() { document.getElementById('authModal').classList.remove('active'); }
 
-    // 🚪 Регистрация
     async function register() {
         const name = document.getElementById('reg-name').value.trim();
         const email = document.getElementById('reg-email').value.trim();
@@ -740,7 +705,6 @@
 
             const data = await res.json().catch(() => ({}));
             
-            // Извлекаем понятное сообщение об ошибке из ответа твоего API
             let errorMsg = 'Неизвестная ошибка';
             if (data.errors) {
             errorMsg = Object.values(data.errors).flat().join(', ');
@@ -752,8 +716,7 @@
 
             if (!res.ok) throw new Error(`[${res.status}] ${errorMsg}`);
             
-            // Успех
-            document.getElementById('auth-message').textContent = '✅ Аккаунт создан! Теперь войдите.';
+            document.getElementById('auth-message').textContent = 'Аккаунт создан! Теперь войдите.';
             document.getElementById('auth-message').style.color = 'var(--success)';
             switchAuthTab('login');
             document.getElementById('login-email').value = email;
@@ -764,7 +727,6 @@
         }
         }
 
-    // 🚪 Вход
     async function login() {
     const email = document.getElementById('login-email').value;
     const password = document.getElementById('login-password').value;
@@ -780,7 +742,6 @@
 
         const data = await res.json();
         
-        // Сохраняем пользователя и токен
         currentUser = {
         id: data.user.id,
         name: data.user.fullName,
@@ -796,7 +757,6 @@
     }
     }
 
-    // Обновление интерфейса после входа/выхода
     function updateAuthUI() {
     const btn = document.getElementById('auth-btn');
     const info = document.getElementById('user-info');
@@ -829,7 +789,6 @@
         const dishes = await res.json();
         
         if (dishes.length === 0) {
-          // Моковые данные для демо
           grid.innerHTML = renderDishes(getMockDishes());
           showToast('ℹ️ Показываем демо-меню', 'info');
           return;
@@ -839,7 +798,6 @@
         grid.innerHTML = `<div style="grid-column: 1/-1; text-align: center; color: var(--error);">
           ⚠️ Не удалось загрузить каталог.<br><small>Убедитесь, что Catalog Service запущен</small>
         </div>`;
-        // Показываем моковые данные как фоллбэк
         setTimeout(() => {
           document.getElementById('dishesGrid').innerHTML = renderDishes(getMockDishes());
           showToast('ℹ️ Показываем демо-меню', 'info');
@@ -853,7 +811,6 @@
     }
     
     return dishes.map(function(dish) {
-        // Используем imageUrl из API или заглушку
         var imageUrl = dish.imageUrl || 'https://via.placeholder.com/400x300?text=Tatar+Food';
         
         return '<div class="dish-card">' +
@@ -880,7 +837,6 @@
       ];
     }
 
-    // 🛒 Логика корзины
     function addToCart(id, name, price) {
       const existing = cart.find(item => item.id === id);
       if (existing) {
@@ -893,10 +849,8 @@
     }
 
     function updateCartUI() {
-    // Обновляем счётчик
     document.getElementById('cartCount').textContent = cart.reduce((sum, item) => sum + item.quantity, 0);
     
-    // Обновляем модальное окно
     const cartItems = document.getElementById('cartItems');
     const cartTotal = document.getElementById('cartTotal');
     const checkoutBtn = document.getElementById('checkoutBtn');
@@ -927,7 +881,6 @@
     const total = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
     cartTotal.textContent = `${total} ₽`;
     
-    // ✅ ПРОВЕРКА: можно ли оформить заказ
     const canCheckout = deliveryInfo?.isDeliverable === true;
     
     if (!canCheckout) {
@@ -960,19 +913,15 @@
       document.getElementById('cartModal').classList.remove('active');
     }
 
-    // 📍 Проверка доставки
     async function checkDelivery() {
       const lat = parseFloat(document.getElementById('lat').value);
       const lon = parseFloat(document.getElementById('lon').value);
       const resultDiv = document.getElementById('deliveryResult');
-      // Показываем маркер на карте
         if (map) {
-        // Удаляем старый маркер пользователя
         if (window.userMarker) {
             map.removeLayer(window.userMarker);
         }
         
-        // Добавляем новый маркер
         window.userMarker = L.marker([lat, lon])
             .addTo(map)
             .bindPopup('<b>Ваш адрес</b><br>Проверка доставки...')
@@ -1014,7 +963,7 @@
           resultDiv.innerHTML = `❌ К сожалению, доставка по этому адресу недоступна`;
           showToast('⚠️ Адрес вне зоны доставки', 'error');
         }
-        updateCartUI(); // Обновить кнопку оформления
+        updateCartUI();
       } catch (err) {
         resultDiv.className = 'delivery-result error';
         resultDiv.textContent = `⚠️ Ошибка: ${err.message}`;
@@ -1022,7 +971,6 @@
       }
     }
 
-    // 🛒 Оформление заказа
     async function checkout() {
     if (!currentUser) {
         showToast('⚠️ Сначала войдите в аккаунт', 'error');
@@ -1073,13 +1021,10 @@
         const order = responseData;
         const orderId = order.id;
         
-        // ✅ Надёжная проверка: 
-        // 1. Если есть PaymentId (оплата прошла)
-        // 2. ИЛИ если статус = 1 (Paid в enum) или строка "Paid"/"paid"
         const paymentId = order.paymentId || order.PaymentId;
-        const status = order.status ?? order.Status; // поддержка camelCase и PascalCase
+        const status = order.status ?? order.Status;
         const isPaid = paymentId || 
-                    status === 2 ||  // enum значение Paid
+                    status === 2 ||
                     String(status).toLowerCase() === 'paid' ||
                     String(status).toLowerCase().includes('paid');
 
@@ -1096,16 +1041,15 @@
         showToast(`⚠️ Заказ #${orderId} создан, но оплата не прошла. Статус: ${status}`, 'error');
         }
         
-    } catch (err) {  // ✅ ЗАКРЫВАЕМ try И ОТКРЫВАЕМ catch
+    } catch (err) {
         showToast(`❌ ${err.message}`, 'error');
         console.error('🔴 Checkout error:', err);
-    } finally {  // ✅ finally для разблокировки кнопки
+    } finally {
         btn.disabled = false;
         btn.innerHTML = originalText;
     }
-    }  // ✅ ЗАКРЫВАЕМ функцию checkout()
+    }
 
-    // 🔔 Уведомления
     function showToast(message, type = 'info') {
       const toast = document.createElement('div');
       toast.className = 'toast';
@@ -1117,12 +1061,10 @@
       setTimeout(() => toast.remove(), 3000);
     }
 
-    // Закрытие модального окна по клику вне контента
     document.getElementById('cartModal').addEventListener('click', (e) => {
       if (e.target.id === 'cartModal') closeCart();
     });
   </script>
-  <!-- Leaflet JS -->
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
       integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
       crossorigin=""></script>
