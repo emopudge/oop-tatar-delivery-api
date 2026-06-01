@@ -1,0 +1,36 @@
+# Test report 2
+
+Date: 01.06.2026
+
+## Environment
+
+- .NET SDK: 8.0.126.
+- PostgreSQL: `docker-compose up -d`.
+- User Service: `http://localhost:5100`.
+- Catalog Service: `http://localhost:5078`.
+- Order Service: `http://localhost:5007`.
+- Delivery Service: `http://localhost:5000`.
+
+
+## Build
+
+`dotnet build oop-tatar-delivery-api.sln` passes.
+
+## Swagger
+
+- User Service Swagger: passed.
+- Catalog Service Swagger: passed.
+- Order Service Swagger: failed.
+- Delivery Service Swagger: passed.
+
+## Order service:
+
+Мок тиньки с оплатой не подвязан к самому заказу, получается, что при дергании ручки create payment она не переводит заказ в новый статус. А делает это эндпоинт pay order, который и до этого этим и занимался.
+И при попытке получить статус оплаты вне зависимости от статуса самого заказа, эндпоинт get payment status возвращает "ожидание подтверждения", как на скрине.
+
+Надо сделать так, чтобы за оплату отвечал мок Т-банка, а не наш дефолтный pay order.
+
+
+## Notes
+
+- Error response format differs between Catalog Service and User/Order services.
