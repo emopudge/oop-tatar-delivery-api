@@ -9,10 +9,18 @@ namespace TatarDelivery.DeliveryService.Controllers;
 [Route("delivery")]
 public class DeliveryController : ControllerBase
 {
-    private readonly DeliveryValidationService _svc;
-    public DeliveryController(DeliveryValidationService svc) => _svc = svc;
+    private readonly DeliveryValidationService _deliveryValidationService;
+
+    public DeliveryController(DeliveryValidationService deliveryValidationService)
+    {
+        _deliveryValidationService = deliveryValidationService;
+    }
 
     [HttpPost("validate-address")]
-    public async Task<ActionResult<DeliveryValidationResponse>> Validate([FromBody] ValidateAddressRequest req)
-        => Ok(await _svc.ValidateAsync(req.Lat, req.Lon));
+    public async Task<ActionResult<DeliveryValidationResponse>> Validate([FromBody] ValidateAddressRequest request)
+    {
+        var response = await _deliveryValidationService.ValidateAsync(request.Lat, request.Lon);
+
+        return Ok(response);
+    }
 }

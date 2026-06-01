@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using TatarDelivery.OrderService.Clients;
 using TatarDelivery.OrderService.Contracts.Requests;
 using TatarDelivery.OrderService.Contracts.Responses;
+using TatarDelivery.OrderService.Services;
 using System.Threading.Tasks;
 
 namespace TatarDelivery.OrderService.Controllers;
@@ -11,11 +12,16 @@ namespace TatarDelivery.OrderService.Controllers;
 public class PaymentController : ControllerBase
 {
     private readonly IPaymentClient _paymentClient;
+    private readonly IOrderService _orderService;
     private readonly ILogger<PaymentController> _logger;
 
-    public PaymentController(IPaymentClient paymentClient, ILogger<PaymentController> logger)
+    public PaymentController(
+        IPaymentClient paymentClient,
+        IOrderService orderService,
+        ILogger<PaymentController> logger)
     {
         _paymentClient = paymentClient ?? throw new ArgumentNullException(nameof(paymentClient));
+        _orderService = orderService ?? throw new ArgumentNullException(nameof(orderService));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
@@ -31,6 +37,12 @@ public class PaymentController : ControllerBase
         try
         {
             var response = await _paymentClient.CreatePaymentAsync(request);
+
+            if (int.TryParse(request.OrderId, out var orderId))
+            {
+                await _orderService.TryApplyPaymentResultAsync(orderId, response);
+            }
+
             return StatusCode(StatusCodes.Status201Created, response);
         }
         catch (HttpRequestException ex)

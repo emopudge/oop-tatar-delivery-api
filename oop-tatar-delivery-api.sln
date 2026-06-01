@@ -3,11 +3,13 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TatarDelivery.UserService", "TatarDelivery.UserService\TatarDelivery.UserService.csproj", "{540F8E5F-BEFF-4B80-8D6C-0506A42E8B2D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TatarDelivery.UserService", "TatarDelivery.UserService\TatarDelivery.UserService.csproj", "{540F8E5F-BEFF-4B80-8D6C-0506A42E8B2D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TatarDelivery.CatalogService", "TatarDelivery.CatalogService\TatarDelivery.CatalogService.csproj", "{C5E17138-5B53-4D6D-9C4B-DA2819653C9E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TatarDelivery.CatalogService", "TatarDelivery.CatalogService\TatarDelivery.CatalogService.csproj", "{C5E17138-5B53-4D6D-9C4B-DA2819653C9E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TatarDelivery.OrderService", "TatarDelivery.OrderService\TatarDelivery.OrderService.csproj", "{4CF37AD9-21ED-42E7-906D-4E6223AABE0E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TatarDelivery.OrderService", "TatarDelivery.OrderService\TatarDelivery.OrderService.csproj", "{4CF37AD9-21ED-42E7-906D-4E6223AABE0E}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TatarDelivery.DeliveryService", "TatarDelivery.DeliveryService\TatarDelivery.DeliveryService.csproj", "{8668153D-1849-4C45-9DAD-EAC0BA0AF754}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -55,6 +57,18 @@ Global
 		{4CF37AD9-21ED-42E7-906D-4E6223AABE0E}.Release|x64.Build.0 = Release|Any CPU
 		{4CF37AD9-21ED-42E7-906D-4E6223AABE0E}.Release|x86.ActiveCfg = Release|Any CPU
 		{4CF37AD9-21ED-42E7-906D-4E6223AABE0E}.Release|x86.Build.0 = Release|Any CPU
+		{8668153D-1849-4C45-9DAD-EAC0BA0AF754}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8668153D-1849-4C45-9DAD-EAC0BA0AF754}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8668153D-1849-4C45-9DAD-EAC0BA0AF754}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{8668153D-1849-4C45-9DAD-EAC0BA0AF754}.Debug|x64.Build.0 = Debug|Any CPU
+		{8668153D-1849-4C45-9DAD-EAC0BA0AF754}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{8668153D-1849-4C45-9DAD-EAC0BA0AF754}.Debug|x86.Build.0 = Debug|Any CPU
+		{8668153D-1849-4C45-9DAD-EAC0BA0AF754}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8668153D-1849-4C45-9DAD-EAC0BA0AF754}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8668153D-1849-4C45-9DAD-EAC0BA0AF754}.Release|x64.ActiveCfg = Release|Any CPU
+		{8668153D-1849-4C45-9DAD-EAC0BA0AF754}.Release|x64.Build.0 = Release|Any CPU
+		{8668153D-1849-4C45-9DAD-EAC0BA0AF754}.Release|x86.ActiveCfg = Release|Any CPU
+		{8668153D-1849-4C45-9DAD-EAC0BA0AF754}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

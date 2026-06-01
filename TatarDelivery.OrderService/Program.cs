@@ -45,6 +45,7 @@ public class Program
         {
             var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
             dbContext.Database.EnsureCreated();
+            EnsureOrderSchema(dbContext);
         }
 
         app.UseSwagger();
@@ -54,5 +55,43 @@ public class Program
         app.MapGet("/", () => Results.Redirect("/swagger"));
 
         app.Run();
+    }
+
+    private static void EnsureOrderSchema(AppDbContext dbContext)
+    {
+        var connection = dbContext.Database.GetDbConnection();
+        connection.Open();
+
+        try
+        {
+            using var columnsCommand = connection.CreateCommand();
+            columnsCommand.CommandText = "PRAGMA table_info('Orders');";
+
+            var hasRestaurantId = false;
+            using (var reader = columnsCommand.ExecuteReader())
+            {
+                while (reader.Read())
+                {
+                    if (string.Equals(reader.GetString(1), "RestaurantId", StringComparison.OrdinalIgnoreCase))
+                    {
+                        hasRestaurantId = true;
+                        break;
+                    }
+                }
+            }
+
+            if (hasRestaurantId)
+            {
+                return;
+            }
+
+            using var alterCommand = connection.CreateCommand();
+            alterCommand.CommandText = "ALTER TABLE Orders ADD COLUMN RestaurantId INTEGER NOT NULL DEFAULT 1;";
+            alterCommand.ExecuteNonQuery();
+        }
+        finally
+        {
+            connection.Close();
+        }
     }
 }

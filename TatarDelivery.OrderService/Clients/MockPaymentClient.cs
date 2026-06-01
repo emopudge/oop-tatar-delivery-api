@@ -11,9 +11,14 @@ namespace TatarDelivery.OrderService.Clients;
 
 public class MockTinkoffPaymentClient : IPaymentClient
 {
+    private const string ConfirmedPaymentStatus = "CONFIRMED";
+    private const string DeclinedPaymentStatus = "DECLINED";
+    private const string PendingPaymentStatus = "PENDING";
+    private const int SuccessPercent = 90;
+
     private readonly HttpClient _httpClient;
     private readonly ILogger<MockTinkoffPaymentClient> _logger;
-    // private readonly string _mockBaseUrl;
+    private static readonly ConcurrentDictionary<string, PaymentResponse> _orderPaymentCache = new();
     private static readonly ConcurrentDictionary<string, PaymentResponse> _paymentCache = new();
     private readonly bool _useRealHttp;
     private static readonly Random _random = new();
@@ -100,16 +105,26 @@ public class MockTinkoffPaymentClient : IPaymentClient
 
     private PaymentResponse GenerateMockPaymentResponse(string orderId)
     {
-        var success = _random.Next(0, 100) < 90;
+        return _orderPaymentCache.GetOrAdd(orderId, CreateMockPaymentResponse);
+    }
+
+    private PaymentResponse CreateMockPaymentResponse(string orderId)
+    {
+        var success = _random.Next(0, 100) < SuccessPercent;
         
         var response = new PaymentResponse
         {
             PaymentId = success ? $"mock_pay_{Guid.NewGuid():N}" : null,
-            Status = success ? "CONFIRMED" : "DECLINED",
+            Status = success ? ConfirmedPaymentStatus : DeclinedPaymentStatus,
             Message = success 
                 ? "Оплата успешно обработана (мок)" 
                 : "Платёж отклонён банком (мок)"
         };
+
+        if (!string.IsNullOrWhiteSpace(response.PaymentId))
+        {
+            _paymentCache[response.PaymentId] = response;
+        }
 
         _logger.LogInformation("MOCK: Ответ для заказа {OrderId}: {Status}", orderId, response.Status);
         return response;
@@ -117,12 +132,17 @@ public class MockTinkoffPaymentClient : IPaymentClient
 
     private PaymentResponse GenerateMockStatusResponse(string paymentId)
     {
+        if (_paymentCache.TryGetValue(paymentId, out var cachedPayment))
+        {
+            return cachedPayment;
+        }
+
         var isConfirmed = paymentId?.StartsWith("mock_pay_") == true;
         
         var response = new PaymentResponse
         {
             PaymentId = paymentId,
-            Status = isConfirmed ? "CONFIRMED" : "PENDING",
+            Status = isConfirmed ? ConfirmedPaymentStatus : PendingPaymentStatus,
             Message = isConfirmed 
                 ? "Платёж подтверждён (мок)" 
                 : "Ожидание подтверждения (мок)"

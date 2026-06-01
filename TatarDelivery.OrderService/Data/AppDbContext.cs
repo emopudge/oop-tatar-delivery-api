@@ -23,6 +23,7 @@ public sealed class AppDbContext : DbContext
             entity.ToTable("Orders");
             entity.HasKey(order => order.Id);
             entity.Property(order => order.Status).HasMaxLength(50).IsRequired();
+            entity.Property(order => order.RestaurantId).IsRequired();
             entity.Property(order => order.TotalPrice).HasColumnType("decimal(18,2)").IsRequired();
             entity.Property(order => order.DeliveryPrice).HasColumnType("decimal(18,2)").IsRequired();
             entity.Property(order => order.CreatedAtUtc).IsRequired();

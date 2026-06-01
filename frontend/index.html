@@ -426,6 +426,11 @@
     border-left-color: var(--success);
     }
 
+    .restaurant-card.selected {
+    background: rgba(0, 209, 160, 0.12);
+    border-left-color: var(--success);
+    }
+
     .restaurant-name {
     font-weight: 600;
     color: var(--text-primary);
@@ -594,6 +599,7 @@
     let map;
     let markers = [];
     let circles = [];
+    let selectedRestaurant = restaurants[0];
 
     function initMap() {
     // Центр карты (Казань)
@@ -619,8 +625,10 @@
             <h3 style="color: var(--accent); margin: 0 0 8px 0;">🏪 ${restaurant.name}</h3>
             <p style="margin: 4px 0;"><strong>Адрес:</strong> ${restaurant.address}</p>
             <p style="margin: 4px 0;"><strong>Радиус доставки:</strong> ${restaurant.radius} км</p>
+            <button class="add-btn" style="margin-top: 8px;" onclick="selectRestaurant(${restaurant.id})">Выбрать</button>
         </div>
         `);
+    marker.on('click', () => selectRestaurant(restaurant.id));
     markers.push(marker);
     
     const circle = L.circle([restaurant.lat, restaurant.lon], {
@@ -635,14 +643,25 @@
     function renderRestaurantsList() {
     const container = document.getElementById('restaurants-list');
     container.innerHTML = restaurants.map(r => `
-        <div class="restaurant-card">
+        <div class="restaurant-card ${selectedRestaurant?.id === r.id ? 'selected' : ''}">
         <div>
             <div class="restaurant-name">🏪 ${r.name}</div>
             <div class="restaurant-radius">📍 ${r.address} • Радиус: ${r.radius} км</div>
         </div>
-        <button class="add-btn" onclick="centerMapOnRestaurant(${r.id})">Показать</button>
+        <button class="add-btn" onclick="selectRestaurant(${r.id})">${selectedRestaurant?.id === r.id ? 'Выбрано' : 'Выбрать'}</button>
         </div>
     `).join('');
+    }
+
+    function selectRestaurant(id) {
+    const restaurant = restaurants.find(r => r.id === id);
+    if (!restaurant) return;
+
+    selectedRestaurant = restaurant;
+    centerMapOnRestaurant(id);
+    renderRestaurantsList();
+    updateCartUI();
+    showToast(`🏪 Выбрано предприятие: ${restaurant.name}`, 'success');
     }
 
     function centerMapOnRestaurant(id) {
@@ -656,15 +675,8 @@
     }
     }
 
-    document.addEventListener('DOMContentLoaded', () => {
-    loadDishes();
-    initMap();
-    });
-
     let cart = [];
     let deliveryInfo = null;
-
-    document.addEventListener('DOMContentLoaded', loadDishes);
 
     let currentUser = null;
 
@@ -946,7 +958,7 @@
             if (window.userMarker) {
                 window.userMarker.setPopupContent(`
                     <b>✅ Доставка доступна!</b><br>
-                    Ресторан #${deliveryInfo.restaurantId}<br>
+                    ${selectedRestaurant?.name || `Ресторан #${deliveryInfo.restaurantId}`}<br>
                     ~${deliveryInfo.estimatedMinutes} мин
                 `);
                 }
@@ -954,7 +966,7 @@
           resultDiv.innerHTML = `
             ✅ Доставка доступна!<br>
             📍 ${deliveryInfo.address}<br>
-            🏪 Ресторан #${deliveryInfo.restaurantId}<br>
+            🏪 ${selectedRestaurant?.name || `Ресторан #${deliveryInfo.restaurantId}`}<br>
             ⏱️ ~${deliveryInfo.estimatedMinutes} мин
           `;
           showToast('🚚 Доставка доступна!', 'success');
@@ -985,6 +997,10 @@
         showToast('⚠️ Сначала проверьте зону доставки', 'error');
         return;
     }
+    if (!selectedRestaurant) {
+        showToast('⚠️ Выберите предприятие на карте', 'error');
+        return;
+    }
 
     const btn = document.getElementById('checkoutBtn');
     const originalText = btn.innerHTML;
@@ -995,6 +1011,7 @@
         const orderData = {
         userId: currentUser.id,
         addressId: 1,
+        restaurantId: selectedRestaurant.id,
         items: cart.map(item => ({
             dishId: item.id,
             quantity: item.quantity
@@ -1035,7 +1052,7 @@
         closeCart();
 
         setTimeout(() => {
-            alert(`🎉 Спасибо за заказ!\n\nНомер: ${orderId}\nСумма: ${order.totalPrice || order.TotalPrice} ₽\nСтатус: Оплачен`);
+            alert(`🎉 Спасибо за заказ!\n\nНомер: ${orderId}\nПредприятие: ${selectedRestaurant.name}\nСумма: ${order.totalPrice || order.TotalPrice} ₽\nСтатус: Оплачен`);
         }, 500);
         } else {
         showToast(`⚠️ Заказ #${orderId} создан, но оплата не прошла. Статус: ${status}`, 'error');

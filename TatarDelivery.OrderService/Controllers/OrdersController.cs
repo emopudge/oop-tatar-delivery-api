@@ -13,6 +13,9 @@ namespace TatarDelivery.OrderService.Controllers;
 [Produces("application/json")]
 public sealed class OrdersController : ControllerBase
 {
+    private const decimal DeliveryPriceRate = 0.1m;
+    private const decimal DefaultMockDishPrice = 300m;
+
     private readonly IOrderService _orderService;
 
     public OrdersController(IOrderService orderService)
@@ -34,6 +37,7 @@ public sealed class OrdersController : ControllerBase
         {
             UserId = request.UserId,
             AddressId = request.AddressId,
+            RestaurantId = request.RestaurantId,
             Status = OrderStatus.PendingPayment,
             CreatedAtUtc = DateTime.UtcNow,
             UpdatedAtUtc = DateTime.UtcNow
@@ -51,7 +55,7 @@ public sealed class OrdersController : ControllerBase
         }
 
         var itemsTotal = order.Items.Sum(i => i.Price * i.Quantity);
-        order.DeliveryPrice = Math.Round(itemsTotal * 0.1m, 2);
+        order.DeliveryPrice = Math.Round(itemsTotal * DeliveryPriceRate, 2);
         order.TotalPrice = itemsTotal + order.DeliveryPrice;
 
         order.StatusHistory.Add(new Domain.OrderStatusHistory
@@ -62,9 +66,8 @@ public sealed class OrdersController : ControllerBase
         });
 
         var createdOrder = await _orderService.CreateOrderAsync(order);
-        var orderResponse = OrderMappings.MapToOrderResponse(order);
+        var orderResponse = OrderMappings.MapToOrderResponse(createdOrder);
         return StatusCode(StatusCodes.Status201Created, orderResponse);
-
     }
 
     [HttpGet("{id:int}")]
@@ -80,6 +83,24 @@ public sealed class OrdersController : ControllerBase
 
         var orderResponse = OrderMappings.MapToOrderResponse(order);
         return Ok(orderResponse);
+    }
+
+    [HttpGet("my")]
+    [ProducesResponseType(typeof(IReadOnlyCollection<OrderResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
+    public async Task<ActionResult<IReadOnlyCollection<OrderResponse>>> GetMyOrders([FromQuery] int userId)
+    {
+        if (userId <= 0)
+        {
+            return BadRequest(new ErrorResponse("Некорректный идентификатор пользователя."));
+        }
+
+        var orders = await _orderService.GetOrdersByUserIdAsync(userId);
+        var response = orders
+            .Select(OrderMappings.MapToOrderResponse)
+            .ToList();
+
+        return Ok(response);
     }
 
     [HttpPost("{id:int}/cancel")]
@@ -118,24 +139,25 @@ public sealed class OrdersController : ControllerBase
     {
         var success = await _orderService.TryMarkOrderAsDeliveredAsync(id);
 
-    if (!success)
-    {
-        var existingOrder = await _orderService.FindOrderByIdAsync(id);
-        if (existingOrder is null)
+        if (!success)
         {
-            return NotFound(new ErrorResponse("Заказ не найден."));
+            var existingOrder = await _orderService.FindOrderByIdAsync(id);
+            if (existingOrder is null)
+            {
+                return NotFound(new ErrorResponse("Заказ не найден."));
+            }
+
+            return BadRequest(new ErrorResponse("Заказ не может быть доставлен в нынешнем статусе."));
         }
-        return BadRequest(new ErrorResponse("Заказ не может быть отменён в нынешнем статусе."));
-    }
 
-    var updatedOrder = await _orderService.FindOrderByIdAsync(id);
-    if (updatedOrder is null)
-    {
-        return NotFound(new ErrorResponse("Заказ не найден после попытки смены статуса доставки."));
-    }
+        var updatedOrder = await _orderService.FindOrderByIdAsync(id);
+        if (updatedOrder is null)
+        {
+            return NotFound(new ErrorResponse("Заказ не найден после попытки смены статуса доставки."));
+        }
 
-    var orderResponse = OrderMappings.MapToOrderResponse(updatedOrder);
-    return Ok(orderResponse);
+        var orderResponse = OrderMappings.MapToOrderResponse(updatedOrder);
+        return Ok(orderResponse);
     }
 
     [HttpPost("{id:int}/pay")]
@@ -171,6 +193,6 @@ public sealed class OrdersController : ControllerBase
         3 => 280m,
         4 => 500m,
         5 => 250m,
-        _ => 300m
+        _ => DefaultMockDishPrice
     };
 }

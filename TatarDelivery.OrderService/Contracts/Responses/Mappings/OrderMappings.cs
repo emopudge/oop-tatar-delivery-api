@@ -10,6 +10,7 @@ public static class OrderMappings
             order.Id,
             order.UserId,
             order.AddressId,
+            order.RestaurantId,
             order.TotalPrice,
             order.DeliveryPrice,
             order.Status,

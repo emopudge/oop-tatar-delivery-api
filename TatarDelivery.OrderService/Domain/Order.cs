@@ -8,6 +8,8 @@ public sealed class Order
 
     public int AddressId { get; set; }
 
+    public int RestaurantId { get; set; }
+
     public decimal TotalPrice { get; set; }
 
     public decimal DeliveryPrice { get; set; }

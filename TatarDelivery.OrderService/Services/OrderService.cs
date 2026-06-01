@@ -14,6 +14,11 @@ namespace TatarDelivery.OrderService.Services;
 
 public class OrderService : IOrderService
 {
+    private const string ConfirmedPaymentStatus = "CONFIRMED";
+    private const int PaymentRetryCount = 3;
+    private static readonly TimeSpan PaymentTimeout = TimeSpan.FromSeconds(10);
+    private static readonly TimeSpan BaseRetryDelay = TimeSpan.FromMilliseconds(500);
+
     private readonly AppDbContext _context;
     private readonly IPaymentClient _paymentClient;
     private readonly ILogger<OrderService> _logger;
@@ -32,14 +37,14 @@ public class OrderService : IOrderService
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
         _retryPolicy = Policy<PaymentResponse>
-            .HandleResult(r => r.Status != "CONFIRMED")
+            .HandleResult(response => response.Status != ConfirmedPaymentStatus)
             .Or<HttpRequestException>()
             .Or<TaskCanceledException>()
             .WaitAndRetryAsync(
-                retryCount: 3,
-                sleepDurationProvider: attempt => TimeSpan.FromMilliseconds(Math.Pow(2, attempt) * 500));
+                retryCount: PaymentRetryCount,
+                sleepDurationProvider: attempt => TimeSpan.FromMilliseconds(Math.Pow(2, attempt) * BaseRetryDelay.TotalMilliseconds));
 
-        _timeoutPolicy = Policy.TimeoutAsync<PaymentResponse>(TimeSpan.FromSeconds(10));
+        _timeoutPolicy = Policy.TimeoutAsync<PaymentResponse>(PaymentTimeout);
         _combinedPolicy = _retryPolicy.WrapAsync(_timeoutPolicy);
     }
 
@@ -72,11 +77,14 @@ public class OrderService : IOrderService
                 return await _paymentClient.CreatePaymentAsync(paymentRequest);
             }, CancellationToken.None);
 
-            if (result.Status == "CONFIRMED")
+            if (result.Status == ConfirmedPaymentStatus)
             {
+                var changedAtUtc = DateTime.UtcNow;
+
                 order.Status = OrderStatus.Paid;
                 order.PaymentId = result.PaymentId;
-                order.UpdatedAtUtc = DateTime.UtcNow;
+                order.UpdatedAtUtc = changedAtUtc;
+                order.StatusHistory.Add(CreateStatusHistory(order.Status, changedAtUtc, "payment"));
 
                 _context.Orders.Update(order);
                 await _context.SaveChangesAsync();
@@ -89,6 +97,7 @@ public class OrderService : IOrderService
 
                 order.Status = OrderStatus.PaymentFailed;
                 order.UpdatedAtUtc = DateTime.UtcNow;
+                order.StatusHistory.Add(CreateStatusHistory(order.Status, order.UpdatedAtUtc, "payment"));
                 _context.Orders.Update(order);
                 await _context.SaveChangesAsync();
             }
@@ -99,6 +108,7 @@ public class OrderService : IOrderService
 
             order.Status = OrderStatus.PaymentTimeout;
             order.UpdatedAtUtc = DateTime.UtcNow;
+            order.StatusHistory.Add(CreateStatusHistory(order.Status, order.UpdatedAtUtc, "payment"));
             _context.Orders.Update(order);
             await _context.SaveChangesAsync();
         }
@@ -108,6 +118,7 @@ public class OrderService : IOrderService
 
             order.Status = OrderStatus.Undefined;
             order.UpdatedAtUtc = DateTime.UtcNow;
+            order.StatusHistory.Add(CreateStatusHistory(order.Status, order.UpdatedAtUtc, "system"));
             _context.Orders.Update(order);
             await _context.SaveChangesAsync();
         }
@@ -121,6 +132,17 @@ public class OrderService : IOrderService
             .Include(o => o.Items)
             .Include(o => o.StatusHistory)
             .FirstOrDefaultAsync(o => o.Id == id);
+    }
+
+    public async Task<IReadOnlyCollection<Order>> GetOrdersByUserIdAsync(int userId)
+    {
+        return await _context.Orders
+            .AsNoTracking()
+            .Include(order => order.Items)
+            .Include(order => order.StatusHistory)
+            .Where(order => order.UserId == userId)
+            .OrderByDescending(order => order.CreatedAtUtc)
+            .ToListAsync();
     }
 
     public async Task<bool> TryMarkOrderAsPaidAsync(int orderId, string paymentId)
@@ -142,17 +164,20 @@ public class OrderService : IOrderService
                 return await _paymentClient.GetPaymentStatusAsync(paymentId);
             }, CancellationToken.None);
 
-            if (statusResponse.Status == "CONFIRMED")
+            if (statusResponse.Status == ConfirmedPaymentStatus)
             {
+                var changedAtUtc = DateTime.UtcNow;
+
                 order.Status = OrderStatus.Paid;
                 order.PaymentId = paymentId;
-                order.UpdatedAtUtc = DateTime.UtcNow;
+                order.UpdatedAtUtc = changedAtUtc;
+                order.StatusHistory.Add(CreateStatusHistory(order.Status, changedAtUtc, "payment"));
                 _context.Orders.Update(order);
                 await _context.SaveChangesAsync();
                 return true;
             }
 
-            _logger.LogWarning("Статус платежа {PaymentId} не CONFIRMED: {Status}", paymentId, statusResponse.Status);
+            _logger.LogWarning("Статус платежа {PaymentId} не {ConfirmedStatus}: {Status}", paymentId, ConfirmedPaymentStatus, statusResponse.Status);
             return false;
         }
         catch (TaskCanceledException tce) when (tce.Message.Contains("timeout", StringComparison.OrdinalIgnoreCase))
@@ -165,6 +190,46 @@ public class OrderService : IOrderService
             _logger.LogError(ex, "Ошибка при проверке статуса платежа {PaymentId} для заказа {OrderId}.", paymentId, orderId);
             return false;
         }
+    }
+
+    public async Task<bool> TryApplyPaymentResultAsync(int orderId, PaymentResponse payment)
+    {
+        var order = await _context.Orders.FindAsync(orderId);
+        if (order is null)
+        {
+            return false;
+        }
+
+        if (order.Status == OrderStatus.Paid)
+        {
+            return true;
+        }
+
+        if (order.Status != OrderStatus.PendingPayment)
+        {
+            return false;
+        }
+
+        var changedAtUtc = DateTime.UtcNow;
+
+        if (payment.Status == ConfirmedPaymentStatus && !string.IsNullOrWhiteSpace(payment.PaymentId))
+        {
+            order.Status = OrderStatus.Paid;
+            order.PaymentId = payment.PaymentId;
+            order.UpdatedAtUtc = changedAtUtc;
+            order.StatusHistory.Add(CreateStatusHistory(order.Status, changedAtUtc, "payment"));
+        }
+        else
+        {
+            order.Status = OrderStatus.PaymentFailed;
+            order.UpdatedAtUtc = changedAtUtc;
+            order.StatusHistory.Add(CreateStatusHistory(order.Status, changedAtUtc, "payment"));
+        }
+
+        _context.Orders.Update(order);
+        await _context.SaveChangesAsync();
+
+        return order.Status == OrderStatus.Paid;
     }
 
     public async Task<bool> TryCancelOrderAsync(int orderId)
@@ -244,5 +309,15 @@ public class OrderService : IOrderService
             _logger.LogError(ex, "Ошибка при отметке доставки заказа {OrderId}.", orderId);
             return false;
         }
+    }
+
+    private static OrderStatusHistory CreateStatusHistory(OrderStatus status, DateTime changedAtUtc, string changedBy)
+    {
+        return new OrderStatusHistory
+        {
+            Status = status,
+            ChangedAtUtc = changedAtUtc,
+            ChangedBy = changedBy
+        };
     }
 }

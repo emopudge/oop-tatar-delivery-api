@@ -4,6 +4,7 @@ public sealed record OrderResponse(
     int Id,
     int UserId,
     int AddressId,
+    int RestaurantId,
     decimal TotalPrice,
     decimal DeliveryPrice,
     OrderStatus Status,

@@ -11,5 +11,8 @@ public sealed class CreateOrderRequest
     public int AddressId { get; set; }
 
     [Range(1, int.MaxValue)]
+    public int RestaurantId { get; set; }
+
+    [Range(1, int.MaxValue)]
     public int UserId { get; set; }
 }

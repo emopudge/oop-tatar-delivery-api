@@ -2,11 +2,12 @@
 
 Репозиторий для проекта по ООП: сервис заказа татарской еды с микросервисной архитектурой.
 
-Проект состоит из трех ASP.NET Core сервисов:
+Проект состоит из четырех ASP.NET Core сервисов:
 
 - `TatarDelivery.UserService`
 - `TatarDelivery.CatalogService`
 - `TatarDelivery.OrderService`
+- `TatarDelivery.DeliveryService`
 
 ## Что реализовано
 
@@ -35,11 +36,17 @@
 - `POST /orders/{order_id}/pay`
 - `POST /orders/{order_id}/deliver`
 
+`Delivery Service` поддерживает:
+
+- `POST /delivery/validate-address`
+
 Внутри есть:
 
 - регистрация и логин;
 - просмотр и редактирование профиля;
 - добавление и просмотр адресов доставки;
+- выбор предприятия на карте, из которого повезут заказ;
+- симуляция оплаты через mock-клиент банка;
 - валидация входных данных;
 - обработка ошибок;
 - хранение данных в `SQLite`;
@@ -68,7 +75,7 @@ dotnet build oop-tatar-delivery-api.sln
 
 ### 3. Запустить сервисы
 
-В трех отдельных терминалах:
+В четырех отдельных терминалах:
 
 ```bash
 dotnet run --project TatarDelivery.UserService/TatarDelivery.UserService.csproj
@@ -82,11 +89,16 @@ dotnet run --project TatarDelivery.CatalogService/TatarDelivery.CatalogService.c
 dotnet run --project TatarDelivery.OrderService/TatarDelivery.OrderService.csproj
 ```
 
+```bash
+dotnet run --project TatarDelivery.DeliveryService/TatarDelivery.DeliveryService.csproj
+```
+
 Swagger будет доступен:
 
 - User Service: `http://localhost:5100/swagger`
 - Catalog Service: `http://localhost:5078/swagger`
 - Order Service: `http://localhost:5007/swagger`
+- Delivery Service: `http://localhost:5000/swagger`
 
 ## Авторизация в Swagger
 
