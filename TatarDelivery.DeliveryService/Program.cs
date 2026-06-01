@@ -9,7 +9,6 @@ builder.Services.AddSingleton<IGeocodingService, YandexGeocodingService>();
 builder.Services.AddSingleton<DeliveryValidationService>();
 
 var app = builder.Build();
-// 🔓 Разрешаем CORS для разработки (все источники, все методы)
 app.UseCors(policy => policy
     .AllowAnyOrigin()
     .AllowAnyMethod()

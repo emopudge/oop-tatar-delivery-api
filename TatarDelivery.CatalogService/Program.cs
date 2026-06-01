@@ -5,7 +5,6 @@ using TatarDelivery.CatalogService.Domain;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// добавление сервисов в контейнер
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
@@ -13,23 +12,21 @@ builder.Services.AddSwaggerGen(c =>
     c.SwaggerDoc("v1", new() { Title = "Catalog Service API", Version = "v1" });
 });
 
-// подключение к бд
+
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
-Console.WriteLine($"🔑 C# видит строку подключения: {builder.Configuration.GetConnectionString("DefaultConnection")}");
+Console.WriteLine($" C# видит строку подключения: {builder.Configuration.GetConnectionString("DefaultConnection")}");
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(connectionString));
 
-// интерфейсы и реализации
 builder.Services.AddScoped<ICatalogDbContext, AppDbContext>();
 builder.Services.AddScoped<ICatalogService, CatalogService>();
 
 var app = builder.Build();
-// 🔓 Разрешаем CORS для разработки (все источники, все методы)
 app.UseCors(policy => policy
     .AllowAnyOrigin()
     .AllowAnyMethod()
     .AllowAnyHeader());
-// конвеер http-запросов
+
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -39,11 +36,10 @@ if (app.Environment.IsDevelopment())
     });
 }
 
-// app.UseHttpsRedirection();
+
 app.UseAuthorization();
 app.MapControllers();
 
-// инициализация бд
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
@@ -51,12 +47,11 @@ using (var scope = app.Services.CreateScope())
     await context.Database.MigrateAsync();
     await CatalogDataSeeder.SeedAsync(context);
 }
-// 🌱 SEED DATA: Автоматическое наполнение базы тестовыми блюдами
+
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
     
-    // Добавляем только если таблица пуста (защита от дублей)
     if (!db.Dishes.Any())
     {
         Console.WriteLine("📦 Добавляем тестовые блюда...");
@@ -110,7 +105,7 @@ using (var scope = app.Services.CreateScope())
         );
 
         await db.SaveChangesAsync();
-        Console.WriteLine("✅ Добавлено 5 блюд с картинками!");
+        Console.WriteLine(" Добавлено 5 блюд с картинками!");
     }
 }
 app.Run();

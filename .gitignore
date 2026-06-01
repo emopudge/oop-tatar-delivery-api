@@ -49,3 +49,8 @@ coverage/
 *.key
 *.pfx
 *.crt
+
+# Служебные файлы Visual Studio
+.vs/
+[Bb]in/
+[Oo]bj/

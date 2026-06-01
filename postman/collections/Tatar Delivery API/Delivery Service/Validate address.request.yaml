@@ -1,0 +1,14 @@
+$kind: http-request
+method: POST
+url: '{{deliveryServiceUrl}}/delivery/validate-address'
+order: 1000
+headers:
+  - key: Content-Type
+    value: application/json
+body:
+  type: json
+  content: |-
+    {
+      "lat": 55.7887,
+      "lon": 49.1221
+    }

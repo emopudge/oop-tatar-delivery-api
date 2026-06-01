@@ -1,0 +1,3 @@
+$kind: collection
+name: 'Tatar Delivery API'
+description: 'Manual QA and demo collection for User, Catalog and Order services.'
